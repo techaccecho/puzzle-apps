@@ -1,4 +1,4 @@
-# Echo Backend
+# Puzzle apps
 
 A multi-service Fastify backend for a Wordsearch game with TypeScript, URL shortening, and dictionary management.
 
@@ -11,7 +11,8 @@ A multi-service Fastify backend for a Wordsearch game with TypeScript, URL short
 - **Admin API**: Full CRUD capabilities for dictionary entries and global redirect URL management.
 - **Convex Integration**: Built to work with [Convex](https://www.convex.dev/), with a robust built-in mock mode for local development.
 - **Swagger Documentation**: Interactive API documentation available at `/api-docs`.
-- **Integrated Frontend**: Serves a mysterious, dark-themed landing page at the root path (`/`) and the Wordsearch game at `/wordsearch/puzzle`.
+- **Integrated Frontend**: Serves a minimalistic home page at the root path (`/`) and the Wordsearch game at `/wordsearch/puzzle?userId=yourUserId`. Features a classic "old school" web aesthetic.
+- **Mandatory User Identification**: Requires a `userId` parameter for all puzzle-related requests to track progress and ensure unique sessions.
 - **TypeScript & Fastify**: Modern stack for high performance and type safety.
 
 ## Security & Anti-Cheat
@@ -81,11 +82,11 @@ Once the server is running, you can access the interactive Swagger documentation
 
 ### Key Endpoints
  
-- `GET /`: Serves the mysterious Home page.
-- `GET /wordsearch/puzzle`: Serves the Wordsearch game.
+- `GET /`: Serves the Home page.
+- `GET /wordsearch/puzzle?userId=ID`: Serves the Wordsearch game (requires `userId`).
 - `GET /asciiart/puzzle`: Serves the ASCII Art puzzle (Coming soon).
 - `GET /git/puzzle`: Explore the Repository puzzle (Coming soon).
-- `GET /v1/api/puzzle/wordSearch`: Generate a new puzzle (returns grid and clues).
+- `GET /v1/api/puzzle/wordSearch?userId=ID`: Generate a new puzzle for the given user.
 - `POST /v1/api/puzzle/wordSearch/validate`: Validate a found word using coordinates.
 - `GET /v1/api/puzzle/wordSearch/complete`: Retrieve the final short URL after solving the puzzle.
 - `GET /v1/api/shortUrl/:shortCode`: Resolve short code and redirect to target URL.
@@ -105,9 +106,12 @@ The Dictionary API uses cursor-based pagination.
 - `src/index.ts`: Entry point for the Fastify server.
 - `src/routes/`: API route definitions.
 - `src/services/`: Core business logic (Puzzle, Dictionary, URL Shortener, Convex).
+- `src/fe/`: Frontend HTML files and templates.
+  - `src/fe/word-search/wordsearch.html`: The frontend Wordsearch game.
+  - `src/fe/home.html`: The landing page.
+  - `src/fe/error.html`: The generic error page template.
 - `src/tests/`: Vitest test suites.
 - `config/`: Configuration files and seed data (`dictionaryData.json`).
-- `wordsearch.html`: The frontend Wordsearch game.
 - `dist/`: Compiled JavaScript output.
 
 ## Development
