@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import fs from "node:fs";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
+import fastifyStatic from "@fastify/static";
 import apiRoutes from "./routes/api.js";
 import errorUtil from "./errors/ErrorUtil.js";
 
@@ -39,6 +40,12 @@ await fastify.register(fastifySwaggerUi, {
   transformStaticCSP: (header) => header,
 });
 
+// Serve assets
+await fastify.register(fastifyStatic, {
+  root: path.join(__dirname, "fe/assets"),
+  prefix: "/assets/",
+});
+
 fastify.get("/", async (request, reply) => {
   const filePath = path.join(__dirname, ".", "fe/home.html");
   const content = fs.readFileSync(filePath, "utf8");
@@ -50,7 +57,7 @@ fastify.get("/admin", async (request, reply) => {
   let content = fs.readFileSync(filePath, "utf8");
 
   const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000/v1/api";
-  content = content.replace("{{API_BASE_URL}}", apiBaseUrl);
+  content = content.replace(/{{API_BASE_URL}}/g, apiBaseUrl);
 
   reply.type("text/html").send(content);
 });
@@ -74,7 +81,7 @@ fastify.get("/wordsearch/puzzle", async (request, reply) => {
   let content = fs.readFileSync(filePath, "utf8");
   
   const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000/v1/api";
-  content = content.replace("{{API_BASE_URL}}", apiBaseUrl);
+  content = content.replace(/{{API_BASE_URL}}/g, apiBaseUrl);
   
   reply.type("text/html").send(content);
 });
@@ -120,7 +127,7 @@ fastify.setNotFoundHandler(async (request, reply) => {
 });
 
 // Handle global errors
-fastify.setErrorHandler(async (error, request, reply) => {
+fastify.setErrorHandler(async (error: any, request, reply) => {
   fastify.log.error(error);
 
   // For API routes, return JSON

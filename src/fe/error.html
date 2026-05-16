@@ -4,90 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{TITLE}}</title>
-    <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #0a0a0a;
-            color: #d0d0d0;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-        .container {
-            text-align: center;
-            background: #121212;
-            padding: 3rem;
-            border-radius: 8px;
-            box-shadow: 0 0 30px rgba(0, 255, 150, 0.05);
-            border: 1px solid #222;
-            max-width: 600px;
-            width: 90%;
-            position: relative;
-        }
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, #1a1a1a, #000, #1a1a1a);
-            z-index: -1;
-            border-radius: 10px;
-        }
-        h1 {
-            color: #00ff96;
-            margin-bottom: 1.5rem;
-            font-size: 2.5rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(0, 255, 150, 0.3);
-        }
-        p {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #888;
-            margin-bottom: 2rem;
-        }
-        hr {
-            border: 0;
-            border-top: 1px solid #333;
-            margin: 20px 0;
-        }
-        address {
-            font-style: italic;
-            font-size: 0.9em;
-            color: #555;
-            margin-top: 20px;
-        }
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 0.8rem 2rem;
-            background-color: transparent;
-            color: #00ff96;
-            text-decoration: none;
-            border: 1px solid #00ff96;
-            border-radius: 4px;
-            font-weight: bold;
-            transition: all 0.4s ease;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        a:hover {
-            background-color: rgba(0, 255, 150, 0.1);
-            box-shadow: 0 0 15px rgba(0, 255, 150, 0.2);
-            transform: translateY(-2px);
-        }
-    </style>
+    <link rel="stylesheet" href="/assets/css/terminal.css">
+    <link rel="stylesheet" href="/assets/css/error.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container terminal-window">
         <h1>{{TITLE}}</h1>
         <p>{{MESSAGE}}</p>
         <hr>
         <address>Web Server at puzzle-apps.vercel.app</address>
-        <p><a href="/">Return to Home</a></p>
+        <p><a href="/" class="btn">Return to Home</a></p>
     </div>
 </body>
 </html>

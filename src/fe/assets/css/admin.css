@@ -1,0 +1,62 @@
+body {
+    padding: 2rem;
+}
+
+.section {
+    background: #121212;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid #222;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+th, td {
+    text-align: left;
+    padding: 0.8rem;
+    border-bottom: 1px solid #222;
+}
+
+th {
+    color: #888;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.form-group div {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 0.3rem;
+}
+
+.nav {
+    margin-bottom: 2rem;
+}
+
+.nav a {
+    color: #666;
+    text-decoration: none;
+    margin-right: 1.5rem;
+}
+
+.nav a:hover {
+    color: #00ff96;
+}

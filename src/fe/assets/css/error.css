@@ -1,0 +1,41 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    text-align: center;
+    padding: 3rem;
+    max-width: 600px;
+    width: 90%;
+}
+
+p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #888;
+    margin-bottom: 2rem;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #333;
+    margin: 20px 0;
+}
+
+address {
+    font-style: italic;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 20px;
+}
+
+a.btn {
+    margin-top: 20px;
+    padding: 0.8rem 2rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
