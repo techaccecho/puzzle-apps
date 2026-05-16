@@ -46,6 +46,7 @@ The application uses environment variables for configuration. Create a `.env` fi
 
 - `CONVEX_URL`: Your Convex deployment URL. If not provided, the application runs in **Mock Mode** using in-memory storage and pre-seeded data.
 - `PORT`: (Optional) The port to run the server on (default: 3000).
+- `API_BASE_URL`: The base URL for the API endpoints, used by the frontend (default: `http://localhost:3000/v1/api`).
 
 ## Running the Application
 

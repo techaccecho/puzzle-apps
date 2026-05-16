@@ -47,7 +47,11 @@ fastify.get("/", async (request, reply) => {
 // Serve wordsearch.html at the specified path
 fastify.get("/wordsearch/puzzle", async (request, reply) => {
   const filePath = path.join(__dirname, ".", "fe/word-search/wordsearch.html");
-  const content = fs.readFileSync(filePath, "utf8");
+  let content = fs.readFileSync(filePath, "utf8");
+  
+  const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000/v1/api";
+  content = content.replace("{{API_BASE_URL}}", apiBaseUrl);
+  
   reply.type("text/html").send(content);
 });
 
