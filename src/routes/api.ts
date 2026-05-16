@@ -486,6 +486,80 @@ export default async function apiRoutes(
     }
   );
 
+  fastify.get(
+    "/admin/puzzles",
+    {
+      schema: {
+        description: "List all puzzles",
+        tags: ["admin"],
+        querystring: {
+          type: "object",
+          properties: {
+            filter: { type: "string" },
+            cursor: { type: "string" },
+            numItems: { type: "number" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: {
+                type: "object",
+                properties: {
+                  items: { type: "array", items: { type: "object", additionalProperties: true } },
+                  continueCursor: { type: "string", nullable: true },
+                },
+              },
+            },
+          },
+          500: errorResponse,
+        },
+      } as FastifySchema,
+    },
+    async (request, reply) => {
+      try {
+        const { filter, cursor, numItems } = request.query as any;
+        const result = await adminService.listPuzzles(filter, cursor, numItems);
+        return { success: true, data: result };
+      } catch (error: any) {
+        reply.status(500).send({ success: false, message: error.message });
+      }
+    }
+  );
+
+  fastify.get(
+    "/admin/shortUrls",
+    {
+      schema: {
+        description: "List all short URLs",
+        tags: ["admin"],
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
+            },
+          },
+          500: errorResponse,
+        },
+      } as FastifySchema,
+    },
+    async (request, reply) => {
+      try {
+        const result = await adminService.listShortUrls();
+        return { success: true, data: result };
+      } catch (error: any) {
+        reply.status(500).send({ success: false, message: error.message });
+      }
+    }
+  );
+
   fastify.post(
     "/admin/serviceMapping",
     {
@@ -525,6 +599,10 @@ export default async function apiRoutes(
         );
         return { success: true, data: result };
       } catch (error: any) {
+        if (error.message.includes("does not exist")) {
+          reply.status(400).send({ success: false, message: error.message });
+          return;
+        }
         reply.status(500).send({ success: false, message: error.message });
       }
     }

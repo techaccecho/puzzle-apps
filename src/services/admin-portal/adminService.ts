@@ -45,6 +45,12 @@ class AdminService extends BaseApiService {
 
   async storeServiceMapping(serviceName: string, redirectUrlType: string) {
     try {
+      // Validate that the redirectUrlType exists
+      const redirectUrl = await convexService.query("redirectUrl:get", { type: redirectUrlType });
+      if (!redirectUrl) {
+        throw new Error(`Redirect URL type '${redirectUrlType}' does not exist.`);
+      }
+
       return await convexService.mutation("serviceMapping:store", { serviceName, redirectUrlType });
     } catch (error) {
       console.error(`Error storing service mapping for ${serviceName}:`, error);
@@ -75,6 +81,24 @@ class AdminService extends BaseApiService {
       return await convexService.query("serviceMapping:get", { serviceName });
     } catch (error) {
       console.error(`Error retrieving service mapping for ${serviceName}:`, error);
+      throw error;
+    }
+  }
+  
+  async listPuzzles(filter?: string, cursor?: string, numItems?: number) {
+    try {
+      return await convexService.query("puzzle:wordsearch:list", { filter, cursor, numItems });
+    } catch (error) {
+      console.error("Error listing puzzles:", error);
+      throw error;
+    }
+  }
+
+  async listShortUrls() {
+    try {
+      return await convexService.query("urlShorter:list");
+    } catch (error) {
+      console.error("Error listing short URLs:", error);
       throw error;
     }
   }

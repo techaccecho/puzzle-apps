@@ -8,10 +8,9 @@ A multi-service Fastify backend for a Wordsearch game with TypeScript, URL short
 - **Security-First Design**: Prevents cheating by obfuscating word data, hiding the secret short URL until completion, and performing all word validations on the server side.
 - **URL Shortener Service**: Generates unique, 7-letter alphabetic codes with non-repeating letters that redirect to a configurable reward URL.
 - **Dictionary Service**: Manages a repository of 500+ words and tricky questions/clues (riddles and metaphors) for varied difficulty, ensuring coverage for every letter of the alphabet.
-- **Admin API**: Full CRUD capabilities for dictionary entries, type-based redirect URL management, and dynamic service mappings.
-- **Convex Integration**: Built to work with [Convex](https://www.convex.dev/), with a robust built-in mock mode for local development. Supports server-side caching for redirect URLs.
-- **Swagger Documentation**: Interactive API documentation available at `/api-docs`.
-- **Integrated Frontend**: Serves a minimalistic home page at the root path (`/`) and the Wordsearch game at `/wordsearch/puzzle?userId=yourUserId`. Features a classic "old school" web aesthetic.
+- **Admin API**: Full CRUD capabilities for dictionary entries, type-based redirect URL management, and dynamic service mappings. Includes overviews for active puzzles and generated short URLs.
+- **Convex Integration**: Built to work with [Convex](https://www.convex.dev/), with a robust built-in mock mode for local development. Supports server-side caching for redirect URLs and global listings for administrative oversight.
+- **Integrated Frontend**: Serves a minimalistic home page, the Wordsearch game, and a comprehensive Admin Dashboard. Features a classic "old school" web aesthetic and themed error handling.
 - **Dynamic Service Mapping**: Decouples services from hardcoded redirect URL types by mapping service names to specific redirect configurations in the database.
 - **Mandatory User Identification**: Requires a `userId` parameter for all puzzle-related requests to track progress and ensure unique sessions.
 - **TypeScript & Fastify**: Modern stack for high performance and type safety.
@@ -100,6 +99,9 @@ Once the server is running, you can access the interactive Swagger documentation
 - `GET /v1/api/admin/serviceMapping`: List all service-to-redirect-URL mappings.
 - `POST /v1/api/admin/serviceMapping`: Create or update a service mapping.
 - `DELETE /v1/api/admin/serviceMapping/:serviceName`: Delete a service mapping.
+- `GET /v1/api/admin/shortUrls`: List all generated short URLs.
+- `GET /v1/api/admin/puzzles`: List all puzzles (supports pagination and filtering).
+- `GET /admin`: Web-based dashboard for system administration and monitoring.
 
 ### Pagination
 The Dictionary API uses cursor-based pagination.

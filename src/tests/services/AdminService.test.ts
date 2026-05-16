@@ -6,6 +6,37 @@ describe("AdminService", () => {
   beforeEach(() => {
     (convexService as any).mockRedirectUrls.clear();
     (convexService as any).mockDictionary.clear();
+    (convexService as any).mockServiceMappings.clear();
+    (convexService as any).redirectUrlCache.clear();
+    (convexService as any).mockPuzzles.clear();
+    (convexService as any).mockShortUrls.clear();
+  });
+
+  test("listPuzzles - should return puzzles", async () => {
+    (convexService as any).mockPuzzles.set("p1", { id: "p1", userId: "u1", completed: false });
+    const result = await adminService.listPuzzles();
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].id).toBe("p1");
+  });
+
+  test("listShortUrls - should return short urls", async () => {
+    (convexService as any).mockShortUrls.set("code1", { shortCode: "code1", userId: "u1", redirectUrl: "http://url.com" });
+    const result = await adminService.listShortUrls();
+    expect(result).toHaveLength(1);
+    expect(result[0].shortCode).toBe("code1");
+  });
+
+  test("storeServiceMapping - should fail if redirectUrlType does not exist", async () => {
+    await expect(
+      adminService.storeServiceMapping("test-service", "non-existent-type")
+    ).rejects.toThrow("Redirect URL type 'non-existent-type' does not exist.");
+  });
+
+  test("storeServiceMapping - should succeed if redirectUrlType exists", async () => {
+    await adminService.storeRedirectUrl("http://example.com", "existing-type");
+    const result = await adminService.storeServiceMapping("test-service", "existing-type");
+    expect(result.success).toBe(true);
+    expect(result.data.redirectUrlType).toBe("existing-type");
   });
 
   test("storeRedirectUrl - stores url by type", async () => {

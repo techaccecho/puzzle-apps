@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Echo Puzzles</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #0a0a0a;
+            color: #d0d0d0;
+            margin: 0;
+            padding: 2rem;
+        }
+        h1, h2 {
+            color: #00ff96;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 150, 0.3);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background: #121212;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid #222;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.8rem;
+            border-bottom: 1px solid #222;
+        }
+        th {
+            color: #888;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+        .form-group div {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 0.3rem;
+        }
+        input, select {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+        .btn {
+            background: transparent;
+            color: #00ff96;
+            border: 1px solid #00ff96;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: rgba(0, 255, 150, 0.1);
+        }
+        .btn-danger {
+            color: #ff4b4b;
+            border-color: #ff4b4b;
+        }
+        .btn-danger:hover {
+            background: rgba(255, 75, 75, 0.1);
+        }
+        .nav {
+            margin-bottom: 2rem;
+        }
+        .nav a {
+            color: #666;
+            text-decoration: none;
+            margin-right: 1.5rem;
+        }
+        .nav a:hover {
+            color: #00ff96;
+        }
+        .status {
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .success { color: #00ff96; }
+        .error { color: #ff4b4b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <a href="/">&larr; Back to Home</a>
+        </div>
+        <h1>Admin Dashboard</h1>
+
+        <!-- Redirect URLs Section -->
+        <div class="section">
+            <h2>Redirect URLs</h2>
+            <div class="form-group">
+                <div>
+                    <label for="urlInput">URL</label>
+                    <input type="text" id="urlInput" placeholder="https://..." style="width: 300px;">
+                </div>
+                <div>
+                    <label for="typeInput">Type</label>
+                    <input type="text" id="typeInput" placeholder="puzzle-type">
+                </div>
+                <button class="btn" id="saveRedirectBtn" onclick="saveRedirectUrl()">Save URL</button>
+                <button class="btn btn-secondary" id="cancelRedirectBtn" onclick="resetRedirectForm()" style="display: none;">Cancel</button>
+            </div>
+            <div id="redirectStatus" class="status"></div>
+            <table id="redirectTable">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>URL</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="redirectList"></tbody>
+            </table>
+        </div>
+
+        <!-- Service Mappings Section -->
+        <div class="section">
+            <h2>Service Mappings</h2>
+            <div class="form-group">
+                <div>
+                    <label for="serviceNameInput">Service Name</label>
+                    <input type="text" id="serviceNameInput" placeholder="word-search">
+                </div>
+                <div>
+                    <label for="redirectTypeInput">Redirect Type</label>
+                    <input type="text" id="redirectTypeInput" placeholder="puzzle-wordsearch">
+                </div>
+                <button class="btn" id="saveMappingBtn" onclick="saveServiceMapping()">Save Mapping</button>
+                <button class="btn btn-secondary" id="cancelMappingBtn" onclick="resetMappingForm()" style="display: none;">Cancel</button>
+            </div>
+            <div id="mappingStatus" class="status"></div>
+            <table id="mappingTable">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Redirect Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="mappingList"></tbody>
+            </table>
+        </div>
+
+        <!-- Puzzles Overview Section -->
+        <div class="section">
+            <h2>Puzzles Overview</h2>
+            <div id="puzzleStatus" class="status"></div>
+            <table id="puzzleTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Status</th>
+                        <th>Found Words</th>
+                    </tr>
+                </thead>
+                <tbody id="puzzleList"></tbody>
+            </table>
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-secondary" id="prevPuzzleBtn" onclick="loadPuzzles(currentPuzzleCursor, -1)" disabled>Previous</button>
+                <button class="btn btn-secondary" id="nextPuzzleBtn" onclick="loadPuzzles(currentPuzzleCursor)">Next</button>
+            </div>
+        </div>
+
+        <!-- Short URLs Overview Section -->
+        <div class="section">
+            <h2>Short URLs Overview</h2>
+            <div id="shortUrlStatus" class="status"></div>
+            <table id="shortUrlTable">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>User</th>
+                        <th>Target URL</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody id="shortUrlList"></tbody>
+            </table>
+        </div>
+
+        <!-- Dictionary Section -->
+        <div class="section">
+            <h2>Dictionary</h2>
+            <div class="form-group">
+                <input type="hidden" id="wordIdInput">
+                <div>
+                    <label for="wordInput">Word</label>
+                    <input type="text" id="wordInput" placeholder="EXPRESS">
+                </div>
+                <div>
+                    <label for="questionInput">Question/Clue</label>
+                    <input type="text" id="questionInput" placeholder="A fast web framework..." style="width: 400px;">
+                </div>
+                <button class="btn" id="saveWordBtn" onclick="saveWord()">Save Word</button>
+                <button class="btn btn-secondary" id="cancelWordBtn" onclick="resetWordForm()" style="display: none;">Cancel</button>
+            </div>
+            <div id="dictionaryStatus" class="status"></div>
+            <table id="dictionaryTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Word</th>
+                        <th>Question</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="dictionaryList"></tbody>
+            </table>
+            <div style="margin-top: 1rem;">
+                <button class="btn btn-secondary" id="prevBtn" onclick="loadDictionary(currentCursor, -1)" disabled>Previous</button>
+                <button class="btn btn-secondary" id="nextBtn" onclick="loadDictionary(currentCursor)">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '{{API_BASE_URL}}';
+        let currentCursor = null;
+        let cursorHistory = [null];
+        let currentPuzzleCursor = null;
+        let puzzleCursorHistory = [null];
+
+        async function fetchApi(endpoint, options = {}) {
+            const response = await fetch(`${API_BASE}${endpoint}`, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message || 'API Error');
+            return data.data;
+        }
+
+        function showStatus(id, message, isError = false) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.className = 'status ' + (isError ? 'error' : 'success');
+            setTimeout(() => el.textContent = '', 5000);
+        }
+
+        // --- Redirect URLs ---
+        async function loadRedirectUrls() {
+            try {
+                const urls = await fetchApi('/admin/redirectUrl');
+                const list = document.getElementById('redirectList');
+                list.innerHTML = urls.map(u => `
+                    <tr>
+                        <td>${u.type}</td>
+                        <td style="word-break: break-all;">${u.url}</td>
+                        <td>
+                            <button class="btn" onclick="editRedirectUrl('${u.type}', '${u.url}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteRedirectUrl('${u.type}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function editRedirectUrl(type, url) {
+            document.getElementById('urlInput').value = url;
+            document.getElementById('typeInput').value = type;
+            document.getElementById('typeInput').readOnly = true;
+            document.getElementById('saveRedirectBtn').textContent = 'Update URL';
+            document.getElementById('cancelRedirectBtn').style.display = 'inline-block';
+        }
+
+        function resetRedirectForm() {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('typeInput').value = '';
+            document.getElementById('typeInput').readOnly = false;
+            document.getElementById('saveRedirectBtn').textContent = 'Save URL';
+            document.getElementById('cancelRedirectBtn').style.display = 'none';
+        }
+
+        async function saveRedirectUrl() {
+            const url = document.getElementById('urlInput').value;
+            const type = document.getElementById('typeInput').value;
+            try {
+                await fetchApi('/admin/redirectUrl', {
+                    method: 'POST',
+                    body: JSON.stringify({ url, type })
+                });
+                showStatus('redirectStatus', 'URL saved successfully');
+                resetRedirectForm();
+                loadRedirectUrls();
+            } catch (err) {
+                showStatus('redirectStatus', err.message, true);
+            }
+        }
+
+        async function deleteRedirectUrl(type) {
+            if (!confirm(`Delete redirect URL for type "${type}"?`)) return;
+            try {
+                await fetchApi(`/admin/redirectUrl/${type}`, { method: 'DELETE' });
+                loadRedirectUrls();
+            } catch (err) {
+                showStatus('redirectStatus', err.message, true);
+            }
+        }
+
+        // --- Service Mappings ---
+        async function loadServiceMappings() {
+            try {
+                const mappings = await fetchApi('/admin/serviceMapping');
+                const list = document.getElementById('mappingList');
+                list.innerHTML = mappings.map(m => `
+                    <tr>
+                        <td>${m.serviceName}</td>
+                        <td>${m.redirectUrlType}</td>
+                        <td>
+                            <button class="btn" onclick="editServiceMapping('${m.serviceName}', '${m.redirectUrlType}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteServiceMapping('${m.serviceName}')">Delete</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function editServiceMapping(serviceName, redirectUrlType) {
+            document.getElementById('serviceNameInput').value = serviceName;
+            document.getElementById('serviceNameInput').readOnly = true;
+            document.getElementById('redirectTypeInput').value = redirectUrlType;
+            document.getElementById('saveMappingBtn').textContent = 'Update Mapping';
+            document.getElementById('cancelMappingBtn').style.display = 'inline-block';
+        }
+
+        function resetMappingForm() {
+            document.getElementById('serviceNameInput').value = '';
+            document.getElementById('serviceNameInput').readOnly = false;
+            document.getElementById('redirectTypeInput').value = '';
+            document.getElementById('saveMappingBtn').textContent = 'Save Mapping';
+            document.getElementById('cancelMappingBtn').style.display = 'none';
+        }
+
+        async function saveServiceMapping() {
+            const serviceName = document.getElementById('serviceNameInput').value;
+            const redirectUrlType = document.getElementById('redirectTypeInput').value;
+            try {
+                await fetchApi('/admin/serviceMapping', {
+                    method: 'POST',
+                    body: JSON.stringify({ serviceName, redirectUrlType })
+                });
+                showStatus('mappingStatus', 'Mapping saved successfully');
+                resetMappingForm();
+                loadServiceMappings();
+            } catch (err) {
+                showStatus('mappingStatus', err.message, true);
+            }
+        }
+
+        async function deleteServiceMapping(serviceName) {
+            if (!confirm(`Delete mapping for service "${serviceName}"?`)) return;
+            try {
+                await fetchApi(`/admin/serviceMapping/${serviceName}`, { method: 'DELETE' });
+                loadServiceMappings();
+            } catch (err) {
+                showStatus('mappingStatus', err.message, true);
+            }
+        }
+
+        // --- Dictionary ---
+        async function loadDictionary(cursor = null, direction = 1) {
+            try {
+                const query = cursor ? `?cursor=${cursor}` : '';
+                const data = await fetchApi(`/dictionary${query}`);
+                
+                const list = document.getElementById('dictionaryList');
+                list.innerHTML = data.items.map(w => `
+                    <tr>
+                        <td>${w.id}</td>
+                        <td>${w.word}</td>
+                        <td>${w.question}</td>
+                        <td>
+                            <button class="btn" onclick="editWord('${w.id}', '${w.word}', \`${w.question.replace(/`/g, '\\`')}\`)">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+
+                if (direction === 1 && cursor) {
+                    cursorHistory.push(cursor);
+                } else if (direction === -1) {
+                    cursorHistory.pop();
+                }
+
+                currentCursor = data.continueCursor;
+                document.getElementById('nextBtn').disabled = !currentCursor;
+                document.getElementById('prevBtn').disabled = cursorHistory.length <= 1;
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function editWord(id, word, question) {
+            document.getElementById('wordIdInput').value = id;
+            document.getElementById('wordInput').value = word;
+            document.getElementById('questionInput').value = question;
+            document.getElementById('saveWordBtn').textContent = 'Update Word';
+            document.getElementById('cancelWordBtn').style.display = 'inline-block';
+        }
+
+        function resetWordForm() {
+            document.getElementById('wordIdInput').value = '';
+            document.getElementById('wordInput').value = '';
+            document.getElementById('questionInput').value = '';
+            document.getElementById('saveWordBtn').textContent = 'Save Word';
+            document.getElementById('cancelWordBtn').style.display = 'none';
+        }
+
+        async function saveWord() {
+            const id = document.getElementById('wordIdInput').value;
+            const word = document.getElementById('wordInput').value;
+            const question = document.getElementById('questionInput').value;
+            try {
+                if (id) {
+                    await fetchApi(`/dictionary/${id}`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ word, question })
+                    });
+                    showStatus('dictionaryStatus', 'Word updated successfully');
+                } else {
+                    await fetchApi('/dictionary', {
+                        method: 'POST',
+                        body: JSON.stringify({ word, question })
+                    });
+                    showStatus('dictionaryStatus', 'Word added successfully');
+                }
+                resetWordForm();
+                loadDictionary();
+            } catch (err) {
+                showStatus('dictionaryStatus', err.message, true);
+            }
+        }
+
+        // --- Puzzles ---
+        async function loadPuzzles(cursor = null, direction = 1) {
+            try {
+                const query = cursor ? `?cursor=${cursor}` : '';
+                const data = await fetchApi(`/admin/puzzles${query}`);
+                
+                const list = document.getElementById('puzzleList');
+                list.innerHTML = data.items.map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>${p.userId}</td>
+                        <td class="${p.completed ? 'success' : ''}">${p.completed ? 'COMPLETE' : 'ACTIVE'}</td>
+                        <td>${p.foundWords ? p.foundWords.join(', ') : '-'}</td>
+                    </tr>
+                `).join('');
+
+                if (direction === 1 && cursor) {
+                    puzzleCursorHistory.push(cursor);
+                } else if (direction === -1) {
+                    puzzleCursorHistory.pop();
+                }
+
+                currentPuzzleCursor = data.continueCursor;
+                document.getElementById('nextPuzzleBtn').disabled = !currentPuzzleCursor;
+                document.getElementById('prevPuzzleBtn').disabled = puzzleCursorHistory.length <= 1;
+            } catch (err) {
+                console.error(err);
+                showStatus('puzzleStatus', err.message, true);
+            }
+        }
+
+        // --- Short URLs ---
+        async function loadShortUrls() {
+            try {
+                const urls = await fetchApi('/admin/shortUrls');
+                const list = document.getElementById('shortUrlList');
+                list.innerHTML = urls.map(u => `
+                    <tr>
+                        <td><code>${u.shortCode}</code></td>
+                        <td>${u.userId}</td>
+                        <td style="word-break: break-all;">${u.redirectUrl}</td>
+                        <td>${u.type || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error(err);
+                showStatus('shortUrlStatus', err.message, true);
+            }
+        }
+
+        // Initialize
+        loadRedirectUrls();
+        loadServiceMappings();
+        loadDictionary();
+        loadPuzzles();
+        loadShortUrls();
+    </script>
+</body>
+</html>

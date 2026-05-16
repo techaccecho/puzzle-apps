@@ -134,6 +134,9 @@ class ConvexService extends BaseApiService {
         const items = Array.from(this.mockShortUrls.values());
         return items.filter((item) => item.userId === args.userId);
       }
+      if (name === "urlShorter:list") {
+        return Array.from(this.mockShortUrls.values());
+      }
       if (name === "redirectUrl:get") {
         const type = args && args.type ? args.type : "default";
         

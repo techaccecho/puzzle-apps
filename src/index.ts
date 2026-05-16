@@ -45,6 +45,16 @@ fastify.get("/", async (request, reply) => {
   reply.type("text/html").send(content);
 });
 
+fastify.get("/admin", async (request, reply) => {
+  const filePath = path.join(__dirname, ".", "fe/admin/admin.html");
+  let content = fs.readFileSync(filePath, "utf8");
+
+  const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000/v1/api";
+  content = content.replace("{{API_BASE_URL}}", apiBaseUrl);
+
+  reply.type("text/html").send(content);
+});
+
 // Serve wordsearch.html at the specified path
 fastify.get("/wordsearch/puzzle", async (request, reply) => {
   const { userId } = request.query as { userId?: string };
@@ -53,11 +63,8 @@ fastify.get("/wordsearch/puzzle", async (request, reply) => {
     const errorPath = path.join(__dirname, ".", "fe/error.html");
     let errorContent = fs.readFileSync(errorPath, "utf8");
 
-    let message = "A valid 'userId' parameter is required to access the puzzle."
     errorContent = await errorUtil.createErrorContent(errorContent, "400 Bad Request",
-        "Something went wrong");
-
-    console.error(message);
+        "A valid 'userId' parameter is required to access the puzzle.");
 
     reply.status(400).type("text/html").send(errorContent);
     return;
@@ -72,8 +79,71 @@ fastify.get("/wordsearch/puzzle", async (request, reply) => {
   reply.type("text/html").send(content);
 });
 
+fastify.get("/asciiart/puzzle", async (request, reply) => {
+  const errorPath = path.join(__dirname, ".", "fe/error.html");
+  let errorContent = fs.readFileSync(errorPath, "utf8");
+
+  errorContent = await errorUtil.createErrorContent(
+    errorContent,
+    "Coming Soon",
+    "The ASCII Art puzzle is currently under development. Please check back later!"
+  );
+
+  reply.type("text/html").send(errorContent);
+});
+
 // Register API routes
 fastify.register(apiRoutes, { prefix: "/v1/api" });
+
+// Handle 404
+fastify.setNotFoundHandler(async (request, reply) => {
+  // For API routes, return JSON
+  if (request.url.startsWith("/v1/api")) {
+    reply.status(404).send({
+      message: `Route ${request.method}:${request.url} not found`,
+      error: "Not Found",
+      statusCode: 404
+    });
+    return;
+  }
+
+  const errorPath = path.join(__dirname, ".", "fe/error.html");
+  let errorContent = fs.readFileSync(errorPath, "utf8");
+
+  errorContent = await errorUtil.createErrorContent(
+    errorContent,
+    "404 Not Found",
+    `The requested path '${request.url}' could not be found in our systems.`
+  );
+
+  reply.status(404).type("text/html").send(errorContent);
+});
+
+// Handle global errors
+fastify.setErrorHandler(async (error, request, reply) => {
+  fastify.log.error(error);
+
+  // For API routes, return JSON
+  if (request.url.startsWith("/v1/api")) {
+    reply.status(error.statusCode || 500).send({
+      message: error.message,
+      error: error.name,
+      statusCode: error.statusCode || 500
+    });
+    return;
+  }
+
+  const errorPath = path.join(__dirname, ".", "fe/error.html");
+  let errorContent = fs.readFileSync(errorPath, "utf8");
+
+  errorContent = await errorUtil.createErrorContent(
+    errorContent,
+    "500 Server Error",
+    "An unexpected error occurred. Please try again later."
+  );
+
+  reply.status(error.statusCode || 500).type("text/html").send(errorContent);
+});
 
 // Start the server
 const start = async () => {
