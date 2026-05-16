@@ -52,7 +52,7 @@ fastify.get("/wordsearch/puzzle", async (request, reply) => {
 });
 
 // Register API routes
-fastify.register(apiRoutes, { prefix: "/api" });
+fastify.register(apiRoutes, { prefix: "/v1/api" });
 
 // Start the server
 const start = async () => {

@@ -84,15 +84,15 @@ Once the server is running, you can access the interactive Swagger documentation
 - `GET /wordsearch/puzzle`: Serves the Wordsearch game.
 - `GET /asciiart/puzzle`: Serves the ASCII Art puzzle (Coming soon).
 - `GET /git/puzzle`: Explore the Repository puzzle (Coming soon).
-- `GET /api/puzzle/wordSearch`: Generate a new puzzle (returns grid and clues).
-- `POST /api/puzzle/wordSearch/validate`: Validate a found word using coordinates.
-- `GET /api/puzzle/wordSearch/complete`: Retrieve the final short URL after solving the puzzle.
-- `GET /api/shortUrl/:shortCode`: Resolve short code and redirect to target URL.
-- `GET /api/dictionary`: List dictionary entries with pagination (`cursor` and `numItems`).
-- `POST /api/dictionary`: Add a new word-question pair.
-- `PATCH /api/dictionary/:id`: Update an existing dictionary entry.
-- `GET /api/admin/redirectUrl`: Retrieve the current global redirect URL.
-- `PATCH /api/admin/redirectUrl`: Update the global redirect URL.
+- `GET /v1/api/puzzle/wordSearch`: Generate a new puzzle (returns grid and clues).
+- `POST /v1/api/puzzle/wordSearch/validate`: Validate a found word using coordinates.
+- `GET /v1/api/puzzle/wordSearch/complete`: Retrieve the final short URL after solving the puzzle.
+- `GET /v1/api/shortUrl/:shortCode`: Resolve short code and redirect to target URL.
+- `GET /v1/api/dictionary`: List dictionary entries with pagination (`cursor` and `numItems`).
+- `POST /v1/api/dictionary`: Add a new word-question pair.
+- `PATCH /v1/api/dictionary/:id`: Update an existing dictionary entry.
+- `GET /v1/api/admin/redirectUrl`: Retrieve the current global redirect URL.
+- `PATCH /v1/api/admin/redirectUrl`: Update the global redirect URL.
 
 ### Pagination
 The Dictionary API uses cursor-based pagination.
