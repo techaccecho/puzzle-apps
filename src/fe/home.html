@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echo Puzzle Apps</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #0a0a0a;
+            color: #d0d0d0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            background: #121212;
+            padding: 3rem;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(0, 255, 150, 0.05);
+            border: 1px solid #222;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #1a1a1a, #000, #1a1a1a);
+            z-index: -1;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #00ff96;
+            margin-bottom: 1.5rem;
+            font-size: 2.5rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(0, 255, 150, 0.3);
+        }
+        p {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #888;
+            margin-bottom: 2.5rem;
+            font-style: italic;
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background-color: transparent;
+            color: #00ff96;
+            text-decoration: none;
+            border: 1px solid #00ff96;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.4s ease;
+            letter-spacing: 2px;
+        }
+        .btn:hover {
+            background-color: rgba(0, 255, 150, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 150, 0.2);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            color: #666;
+            border-color: #333;
+        }
+        .btn-secondary:hover {
+            color: #999;
+            border-color: #666;
+            background-color: rgba(255, 255, 255, 0.02);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Echo Puzzles</h1>
+        <p>The secrets are hidden within the puzzles. Will you find them, or will they remain lost in the code?</p>
+        <div class="links">
+            <a href="/wordsearch/puzzle" class="btn">Enter the Grid</a>
+            <a href="/asciiart/puzzle" class="btn">A picture is worth a thousand words</a>
+            <a href="/git/puzzle" class="btn">Explore the Repository</a>
+            <a href="/api-docs" class="btn btn-secondary">The Protocols</a>
+        </div>
+    </div>
+</body>
+</html>
