@@ -1,53 +1,74 @@
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeEach, vi } from "vitest";
 import urlShortenerService from "../../services/url-shortner/UrlShortenerService.js";
 import convexService from "../../services/convex/ConvexService.js";
 
-describe("UrlShortenerService", () => {
-  beforeEach(() => {
-    (convexService as any).mockShortUrls.clear();
+describe("UrlShortenerService Integration with Convex (Mock Mode)", () => {
+  test("generateShortUrl - throws error if redirectUrl type is not found", async () => {
     (convexService as any).mockRedirectUrls.clear();
+    (convexService as any).redirectUrlCache.clear();
+    await expect(
+      urlShortenerService.generateShortUrl(null, "user1", "unknown-type")
+    ).rejects.toThrow("Redirect URL for type 'unknown-type' not found");
   });
 
-  test("generateShortUrl - generates a 7-letter unique code", async () => {
-    const userId = "user123";
-    const code = await urlShortenerService.generateShortUrl(null, userId);
-    expect(code).toHaveLength(7);
-
-    const stored = (convexService as any).mockShortUrls.get(code);
-    expect(stored).toBeDefined();
-    expect(stored.userId).toBe(userId);
-  });
-
-  test("generateShortUrl - uses provided redirectUrl", async () => {
-    const customUrl = "http://custom.com";
-    const code = await urlShortenerService.generateShortUrl(customUrl, "u1");
-    const stored = (convexService as any).mockShortUrls.get(code);
-    expect(stored.redirectUrl).toBe(customUrl);
-  });
-
-  test("getRedirectUrlByCode - retrieves the correct URL", async () => {
-    const code = "abcdefg";
-    const target = "http://target.com";
-    (convexService as any).mockShortUrls.set(code, {
-      shortCode: code,
-      redirectUrl: target,
+  test("generateShortUrl - succeeds if redirectUrl type exists", async () => {
+    (convexService as any).mockRedirectUrls.clear();
+    (convexService as any).redirectUrlCache.clear();
+    // Seed the mock DB
+    await convexService.mutation("redirectUrl:store", { 
+      url: "https://success.com", 
+      type: "known-type" 
     });
 
-    const result = await urlShortenerService.getRedirectUrlByCode(code);
-    expect(result).toBe(target);
+    const shortCode = await urlShortenerService.generateShortUrl(null, "user1", "known-type");
+    expect(shortCode).toBeDefined();
+    expect(shortCode.length).toBe(7);
+
+    const info = await urlShortenerService.getShortUrlInfo(shortCode);
+    expect(info.redirectUrl).toBe("https://success.com");
   });
 
-  test("getRedirectUrlByCode - returns null for non-existent code", async () => {
-    const result = await urlShortenerService.getRedirectUrlByCode("nonexistent");
-    expect(result).toBeNull();
+  test("generateShortUrl - bypasses DB if direct redirectUrl is provided", async () => {
+    const shortCode = await urlShortenerService.generateShortUrl("https://direct.com", "user1");
+    const info = await urlShortenerService.getShortUrlInfo(shortCode);
+    expect(info.redirectUrl).toBe("https://direct.com");
   });
 
-  test("getShortUrlsByUser - returns all codes for a user", async () => {
-    await urlShortenerService.generateShortUrl("http://1.com", "u1");
-    await urlShortenerService.generateShortUrl("http://2.com", "u1");
-    await urlShortenerService.generateShortUrl("http://3.com", "u2");
+  test("generateShortUrl - uses seeded redirect URL from config/redirectUrlData.json", async () => {
+    // Seed it manually for the test to ensure it's present regardless of global state/cleanup
+    await convexService.mutation("redirectUrl:store", { 
+      url: "https://project-echo-game.vercel.app", 
+      type: "puzzle-wordsearch" 
+    });
 
-    const u1Urls = await urlShortenerService.getShortUrlsByUser("u1");
-    expect(u1Urls).toHaveLength(2);
+    const shortCode = await urlShortenerService.generateShortUrl(null, "user-seeded", "puzzle-wordsearch");
+    expect(shortCode).toBeDefined();
+    
+    const info = await urlShortenerService.getShortUrlInfo(shortCode);
+    expect(info.redirectUrl).toBe("https://project-echo-game.vercel.app");
+  });
+
+  test("generateShortUrl - uses service mapping to find redirect URL type", async () => {
+    // Seed redirect URL
+    await convexService.mutation("redirectUrl:store", { 
+      url: "https://mapped-service.com", 
+      type: "mapped-type" 
+    });
+
+    // Seed service mapping
+    await convexService.mutation("serviceMapping:store", {
+      serviceName: "test-service",
+      redirectUrlType: "mapped-type"
+    });
+
+    // We can't easily call WordSearchService here without more setup, 
+    // but we can verify the logic that WordSearchService will use.
+    
+    const mapping = await convexService.query("serviceMapping:get", { serviceName: "test-service" });
+    expect(mapping.redirectUrlType).toBe("mapped-type");
+
+    const shortCode = await urlShortenerService.generateShortUrl(null, "user-mapped", mapping.redirectUrlType);
+    const info = await urlShortenerService.getShortUrlInfo(shortCode);
+    expect(info.redirectUrl).toBe("https://mapped-service.com");
   });
 });

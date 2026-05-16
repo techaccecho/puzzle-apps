@@ -8,10 +8,11 @@ A multi-service Fastify backend for a Wordsearch game with TypeScript, URL short
 - **Security-First Design**: Prevents cheating by obfuscating word data, hiding the secret short URL until completion, and performing all word validations on the server side.
 - **URL Shortener Service**: Generates unique, 7-letter alphabetic codes with non-repeating letters that redirect to a configurable reward URL.
 - **Dictionary Service**: Manages a repository of 500+ words and tricky questions/clues (riddles and metaphors) for varied difficulty, ensuring coverage for every letter of the alphabet.
-- **Admin API**: Full CRUD capabilities for dictionary entries and global redirect URL management.
-- **Convex Integration**: Built to work with [Convex](https://www.convex.dev/), with a robust built-in mock mode for local development.
+- **Admin API**: Full CRUD capabilities for dictionary entries, type-based redirect URL management, and dynamic service mappings.
+- **Convex Integration**: Built to work with [Convex](https://www.convex.dev/), with a robust built-in mock mode for local development. Supports server-side caching for redirect URLs.
 - **Swagger Documentation**: Interactive API documentation available at `/api-docs`.
 - **Integrated Frontend**: Serves a minimalistic home page at the root path (`/`) and the Wordsearch game at `/wordsearch/puzzle?userId=yourUserId`. Features a classic "old school" web aesthetic.
+- **Dynamic Service Mapping**: Decouples services from hardcoded redirect URL types by mapping service names to specific redirect configurations in the database.
 - **Mandatory User Identification**: Requires a `userId` parameter for all puzzle-related requests to track progress and ensure unique sessions.
 - **TypeScript & Fastify**: Modern stack for high performance and type safety.
 
@@ -93,8 +94,12 @@ Once the server is running, you can access the interactive Swagger documentation
 - `GET /v1/api/dictionary`: List dictionary entries with pagination (`cursor` and `numItems`).
 - `POST /v1/api/dictionary`: Add a new word-question pair.
 - `PATCH /v1/api/dictionary/:id`: Update an existing dictionary entry.
-- `GET /v1/api/admin/redirectUrl`: Retrieve the current global redirect URL.
-- `PATCH /v1/api/admin/redirectUrl`: Update the global redirect URL.
+- `GET /v1/api/admin/redirectUrl`: List all configured redirect URLs.
+- `POST /v1/api/admin/redirectUrl`: Store or update a redirect URL for a specific type.
+- `DELETE /v1/api/admin/redirectUrl/:type`: Delete a redirect URL by type.
+- `GET /v1/api/admin/serviceMapping`: List all service-to-redirect-URL mappings.
+- `POST /v1/api/admin/serviceMapping`: Create or update a service mapping.
+- `DELETE /v1/api/admin/serviceMapping/:serviceName`: Delete a service mapping.
 
 ### Pagination
 The Dictionary API uses cursor-based pagination.

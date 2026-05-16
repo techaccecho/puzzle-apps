@@ -11,6 +11,8 @@ class ConvexService extends BaseApiService {
   private client: ConvexHttpClient | null = null;
   private mockPuzzles = new Map<string, any>();
   private mockRedirectUrls = new Map<string, { url: string }>();
+  private redirectUrlCache = new Map<string, { url: string }>();
+  private mockServiceMappings = new Map<string, { redirectUrlType: string }>();
   private mockShortUrls = new Map<string, any>();
   private mockDictionary = new Map<string, any>();
 
@@ -48,6 +50,31 @@ class ConvexService extends BaseApiService {
       }
     } catch (error) {
       console.error("Error loading dictionary seed data:", error);
+    }
+
+    // Seed mock redirect URLs and service mappings from combined config
+    try {
+      const redirectUrlPath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "config",
+        "redirectUrlData.json"
+      );
+      if (fs.existsSync(redirectUrlPath)) {
+        const defaultUrls = JSON.parse(fs.readFileSync(redirectUrlPath, "utf8"));
+        defaultUrls.forEach((item: any) => {
+          this.mockRedirectUrls.set(item.type, { url: item.redirectUrl });
+          if (item.serviceName) {
+            this.mockServiceMappings.set(item.serviceName, { redirectUrlType: item.type });
+          }
+        });
+      } else {
+        console.warn("Redirect URL seed file not found at " + redirectUrlPath);
+      }
+    } catch (error) {
+      console.error("Error loading redirect URL seed data:", error);
     }
 
     const convexUrl = process.env.CONVEX_URL;
@@ -109,15 +136,33 @@ class ConvexService extends BaseApiService {
       }
       if (name === "redirectUrl:get") {
         const type = args && args.type ? args.type : "default";
-        return (
-          this.mockRedirectUrls.get(type) || {
-            url: "https://project-echo-game.vercel.app",
-          }
-        );
+        
+        // Check cache first
+        if (this.redirectUrlCache.has(type)) {
+          console.log(`[MOCK] redirectUrl:get - Cache hit for ${type}`);
+          return this.redirectUrlCache.get(type);
+        }
+
+        const result = this.mockRedirectUrls.get(type) || null;
+        
+        if (result) {
+          this.redirectUrlCache.set(type, result);
+        }
+        
+        return result;
       }
       if (name === "redirectUrl:list") {
         return Array.from(this.mockRedirectUrls.entries()).map(([type, data]) => ({
           type,
+          ...data,
+        }));
+      }
+      if (name === "serviceMapping:get") {
+        return this.mockServiceMappings.get(args.serviceName) || null;
+      }
+      if (name === "serviceMapping:list") {
+        return Array.from(this.mockServiceMappings.entries()).map(([serviceName, data]) => ({
+          serviceName,
           ...data,
         }));
       }
@@ -184,6 +229,7 @@ class ConvexService extends BaseApiService {
       if (name === "redirectUrl:store" || name === "redirectUrl:update") {
         const type = args.type || "default";
         this.mockRedirectUrls.set(type, { url: args.url });
+        this.redirectUrlCache.set(type, { url: args.url });
         return { success: true, data: { type, url: args.url } };
       }
       if (name === "dictionary:add") {
@@ -204,6 +250,20 @@ class ConvexService extends BaseApiService {
         };
         this.mockDictionary.set(args.id, updated);
         return { success: true, id: args.id, ...updated };
+      }
+      if (name === "redirectUrl:delete") {
+        const type = args.type || "default";
+        this.mockRedirectUrls.delete(type);
+        this.redirectUrlCache.delete(type);
+        return { success: true };
+      }
+      if (name === "serviceMapping:store") {
+        this.mockServiceMappings.set(args.serviceName, { redirectUrlType: args.redirectUrlType });
+        return { success: true, data: { serviceName: args.serviceName, redirectUrlType: args.redirectUrlType } };
+      }
+      if (name === "serviceMapping:delete") {
+        this.mockServiceMappings.delete(args.serviceName);
+        return { success: true };
       }
       return { success: true, mocked: true };
     }

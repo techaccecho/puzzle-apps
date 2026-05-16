@@ -1,0 +1,14 @@
+[
+  {
+    "id": "1",
+    "redirectUrl": "https://project-echo-game.vercel.app",
+    "type": "puzzle-wordsearch",
+    "serviceName": "word-search"
+  },
+  {
+    "id": "2",
+    "redirectUrl": "https://www.deviantart.com/mindless96/art/Grim-Reaper-Ascii-Art-1208289350",
+    "type": "puzzle-asciiart",
+    "serviceName": null
+  }
+]

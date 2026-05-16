@@ -5,6 +5,8 @@ describe("ConvexService", () => {
   beforeEach(() => {
     (convexService as any).mockPuzzles.clear();
     (convexService as any).mockRedirectUrls.clear();
+    (convexService as any).redirectUrlCache.clear();
+    (convexService as any).mockServiceMappings.clear();
     (convexService as any).mockShortUrls.clear();
   });
 
@@ -57,11 +59,26 @@ describe("ConvexService", () => {
       expect(result).toEqual(data);
     });
 
-    test("redirectUrl:get - returns default if not found", async () => {
+    test("redirectUrl:get - returns null if not found", async () => {
       const result = await convexService.query("redirectUrl:get", {
-        type: "default",
+        type: "non-existent",
       });
-      expect(result).toEqual({ url: "https://project-echo-game.vercel.app" });
+      expect(result).toBeNull();
+    });
+
+    test("redirectUrl:get - returns cached value", async () => {
+      // Setup mock
+      (convexService as any).mockRedirectUrls.set("test-cache", { url: "http://cached.com" });
+      
+      // First call (cache miss)
+      const result1 = await convexService.query("redirectUrl:get", { type: "test-cache" });
+      expect(result1.url).toBe("http://cached.com");
+
+      // Update mock directly (cache should still have old value)
+      (convexService as any).mockRedirectUrls.set("test-cache", { url: "http://updated.com" });
+      
+      const result2 = await convexService.query("redirectUrl:get", { type: "test-cache" });
+      expect(result2.url).toBe("http://cached.com"); // Cache hit
     });
 
     test("dictionary:get - returns word by id", async () => {
@@ -71,6 +88,28 @@ describe("ConvexService", () => {
       });
       const result = await convexService.query("dictionary:get", { id: "999" });
       expect(result.word).toBe("jest");
+    });
+
+    test("redirectUrl:delete - removes redirect url and clears cache", async () => {
+      // Seed
+      await convexService.mutation("redirectUrl:store", { type: "to-delete", url: "http://delete.me" });
+      
+      // Verify exists and is cached
+      const result1 = await convexService.query("redirectUrl:get", { type: "to-delete" });
+      expect(result1.url).toBe("http://delete.me");
+      
+      // Delete
+      await convexService.mutation("redirectUrl:delete", { type: "to-delete" });
+      
+      // Verify gone
+      const result2 = await convexService.query("redirectUrl:get", { type: "to-delete" });
+      expect(result2).toBeNull();
+    });
+
+    test("serviceMapping:get - returns mapping if exists", async () => {
+      (convexService as any).mockServiceMappings.set("test-service", { redirectUrlType: "test-type" });
+      const result = await convexService.query("serviceMapping:get", { serviceName: "test-service" });
+      expect(result.redirectUrlType).toBe("test-type");
     });
   });
 

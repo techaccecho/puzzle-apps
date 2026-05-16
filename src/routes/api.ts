@@ -50,7 +50,7 @@ export default async function apiRoutes(
       const puzzle = await wordSearchService.generatePuzzle(userId);
       return { success: true, data: puzzle };
     } catch (error: any) {
-      reply.status(500).send({ success: false, message: error.message });
+      reply.status(400).send({ success: false, message: error.message });
     }
   });
 
@@ -357,7 +357,7 @@ export default async function apiRoutes(
           required: ["url"],
           properties: {
             url: { type: "string", format: "uri" },
-            type: { type: "string", enum: ["PUZZLE", "GAME", "BLOG", "default"] },
+            type: { type: "string" },
           },
         },
         response: {
@@ -388,6 +388,42 @@ export default async function apiRoutes(
     }
   );
 
+  fastify.delete(
+    "/admin/redirectUrl/:type",
+    {
+      schema: {
+        description: "Delete a redirect URL by type",
+        tags: ["admin"],
+        params: {
+          type: "object",
+          required: ["type"],
+          properties: {
+            type: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: { type: "object", additionalProperties: true },
+            },
+          },
+          500: errorResponse,
+        },
+      } as FastifySchema,
+    },
+    async (request, reply) => {
+      try {
+        const { type } = request.params as { type: string };
+        const result = await adminService.deleteRedirectUrl(type);
+        return { success: true, data: result };
+      } catch (error: any) {
+        reply.status(500).send({ success: false, message: error.message });
+      }
+    }
+  );
+
   fastify.get(
     "/admin/redirectUrl",
     {
@@ -399,7 +435,10 @@ export default async function apiRoutes(
             type: "object",
             properties: {
               success: { type: "boolean" },
-              data: { type: "array", items: { type: "object", additionalProperties: true } },
+              data: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
             },
           },
           500: errorResponse,
@@ -409,6 +448,117 @@ export default async function apiRoutes(
     async (request, reply) => {
       try {
         const result = await adminService.listRedirectUrls();
+        return { success: true, data: result };
+      } catch (error: any) {
+        reply.status(500).send({ success: false, message: error.message });
+      }
+    }
+  );
+
+  fastify.get(
+    "/admin/serviceMapping",
+    {
+      schema: {
+        description: "List all service mappings",
+        tags: ["admin"],
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
+            },
+          },
+          500: errorResponse,
+        },
+      } as FastifySchema,
+    },
+    async (request, reply) => {
+      try {
+        const result = await adminService.listServiceMappings();
+        return { success: true, data: result };
+      } catch (error: any) {
+        reply.status(500).send({ success: false, message: error.message });
+      }
+    }
+  );
+
+  fastify.post(
+    "/admin/serviceMapping",
+    {
+      schema: {
+        description: "Store a service mapping",
+        tags: ["admin"],
+        body: {
+          type: "object",
+          required: ["serviceName", "redirectUrlType"],
+          properties: {
+            serviceName: { type: "string" },
+            redirectUrlType: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: { type: "object", additionalProperties: true },
+            },
+          },
+          400: errorResponse,
+          500: errorResponse,
+        },
+      } as FastifySchema,
+    },
+    async (request, reply) => {
+      try {
+        const { serviceName, redirectUrlType } = request.body as {
+          serviceName: string;
+          redirectUrlType: string;
+        };
+        const result = await adminService.storeServiceMapping(
+          serviceName,
+          redirectUrlType
+        );
+        return { success: true, data: result };
+      } catch (error: any) {
+        reply.status(500).send({ success: false, message: error.message });
+      }
+    }
+  );
+
+  fastify.delete(
+    "/admin/serviceMapping/:serviceName",
+    {
+      schema: {
+        description: "Delete a service mapping",
+        tags: ["admin"],
+        params: {
+          type: "object",
+          required: ["serviceName"],
+          properties: {
+            serviceName: { type: "string" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: { type: "object", additionalProperties: true },
+            },
+          },
+          500: errorResponse,
+        },
+      } as FastifySchema,
+    },
+    async (request, reply) => {
+      try {
+        const { serviceName } = request.params as { serviceName: string };
+        const result = await adminService.deleteServiceMapping(serviceName);
         return { success: true, data: result };
       } catch (error: any) {
         reply.status(500).send({ success: false, message: error.message });
@@ -427,7 +577,7 @@ export default async function apiRoutes(
           required: ["url"],
           properties: {
             url: { type: "string", format: "uri" },
-            type: { type: "string", enum: ["PUZZLE", "GAME", "BLOG", "default"] },
+            type: { type: "string" },
           },
         },
         response: {

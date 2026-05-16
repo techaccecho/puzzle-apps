@@ -6,18 +6,17 @@ class UrlShortenerService extends BaseApiService {
     super();
   }
 
-  async generateShortUrl(redirectUrl: string | null, userId: string) {
+  async generateShortUrl(redirectUrl: string | null, userId: string, type = "default") {
     let urlToShorten = redirectUrl;
     if (!urlToShorten) {
-      try {
-        const result = await convexService.query("redirectUrl:get", {
-          type: "default",
-        });
-        urlToShorten = result ? result.url : "https://example.com/default";
-      } catch (error) {
-        console.error("Error fetching default redirect URL:", error);
-        urlToShorten = "https://example.com/default";
+      const result = await convexService.query("redirectUrl:get", {
+        type,
+      });
+
+      if (!result || !result.url) {
+        throw new Error(`Redirect URL for type '${type}' not found. Please ensure it is stored in the database.`);
       }
+      urlToShorten = result.url;
     }
 
     const alphabet = "abcdefghijklmnopqrstuvwxyz";

@@ -44,7 +44,10 @@ class WordSearchService extends BaseApiService {
       puzzleData = existingPuzzle;
       this.puzzleCache.set(puzzleData!.id, puzzleData!);
     } else {
-      const shortUrl = await urlShortenerService.generateShortUrl(null, userId);
+      const mapping = await convexService.query("serviceMapping:get", { serviceName: "word-search" });
+      const redirectType = mapping?.redirectUrlType || "puzzle-wordsearch";
+      
+      const shortUrl = await urlShortenerService.generateShortUrl(null, userId, redirectType);
       const dictionaryEntries = await dictionaryService.getWordsByStartingLetters(
         shortUrl
       );
