@@ -155,7 +155,7 @@ function render() {
     document.addEventListener("touchend", endSelection);
 
     // Render clues
-    cluesContainer.innerHTML = "<b>Clues</b><br>";
+    cluesContainer.innerHTML = "<b>Clues</b>";
     clues.forEach((clue, index) => {
         if (!clue) return;
         const clueDiv = document.createElement("div");
@@ -240,6 +240,7 @@ function handleFoundWord(word, cells) {
     const clueEl = document.getElementById(clueId);
     if (clueEl) {
         clueEl.style.textDecoration = "line-through";
+        clueEl.style.opacity = "0.5";
     }
     
     // Clear selection so the "selected" color is replaced by "found"
@@ -296,7 +297,8 @@ function updateRevealUI() {
     const isComplete = revealLetters.every(l => l !== null);
     if (isComplete) {
         titleEl.textContent = "SEQUENCE STABILIZED";
-        container.style.boxShadow = "0 0 30px rgba(0,255,0,0.4)";
+        container.style.boxShadow = "0 0 30px rgba(0, 255, 150, 0.4)";
+        container.style.borderColor = "#00ff96";
     } else {
         titleEl.textContent = "SEQUENCE INCOMPLETE";
     }
@@ -379,6 +381,7 @@ async function init() {
                     const clueEl = document.getElementById(`clue-${wordObfuscatedId}`);
                     if (clueEl) {
                         clueEl.style.textDecoration = "line-through";
+                        clueEl.style.opacity = "0.5";
                     }
                     
                     // Restore reveal letter

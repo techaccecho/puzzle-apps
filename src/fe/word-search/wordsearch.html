@@ -2,35 +2,45 @@
 
 <html>
 <head>
-  <title>Word Search POC</title>
+  <meta charset="UTF-8">
+  <title>Word Search - Echo Puzzles</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <link rel="stylesheet" href="/assets/css/terminal.css">
   <link rel="stylesheet" href="/assets/css/wordsearch.css">
 </head>
 
 <body>
 
-<div class="error-container" id="errorPage">
-  <h1 id="errorTitle">Error</h1>
-  <p id="errorMessage"></p>
-  <hr>
-  <address>Web Server at puzzle-apps.vercel.app</address>
-  <p><a href="/">Return to Home</a></p>
-</div>
+<div class="container">
 
-<div class="grid-wrapper" id="gameContent">
-  <canvas id="lineCanvas"></canvas>
-  <div id="grid" class="grid"></div>
-  <div class="reveal-container" id="revealContainer">
-    <div class="reveal-title">SEQUENCE INCOMPLETE</div>
-    <div class="reveal-code" id="revealCode"></div>
+  <div class="error-container terminal-window" id="errorPage" style="display: none; padding: 2rem; margin-top: 2rem;">
+    <h1 id="errorTitle">SYSTEM ERROR</h1>
+    <p id="errorMessage" class="error"></p>
+    <hr style="border-color: #333;">
+    <address>Web Server at puzzle-apps.vercel.app</address>
+    <p><a href="/" class="btn btn-secondary">Return to Home</a></p>
   </div>
-  <div class="mysterious-overlay" id="mysteriousOverlay">
-    <div class="mysterious-message" id="mysteriousMessage"></div>
-    <div class="final-reveal" id="finalReveal"></div>
-  </div>
-  <div><p> </p> </div>
-  <div class="clues">
+
+  <div class="grid-wrapper" id="gameContent">
+    <div class="terminal-window" style="padding: 1rem; display: inline-block;">
+      <canvas id="lineCanvas"></canvas>
+      <div id="grid" class="grid"></div>
+    </div>
+    
+    <div class="reveal-container terminal-window" id="revealContainer">
+      <div class="reveal-title">SEQUENCE INCOMPLETE</div>
+      <div class="reveal-code" id="revealCode"></div>
+    </div>
+    
+    <div class="clues-container terminal-window">
+      <div class="clues"></div>
+    </div>
+
+    <div class="mysterious-overlay" id="mysteriousOverlay">
+      <div class="mysterious-message" id="mysteriousMessage"></div>
+      <div class="final-reveal" id="finalReveal"></div>
+    </div>
   </div>
 </div>
 
