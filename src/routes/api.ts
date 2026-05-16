@@ -25,8 +25,9 @@ export default async function apiRoutes(
         tags: ["puzzle"],
         querystring: {
           type: "object",
+          required: ["userId"],
           properties: {
-            userId: { type: "string" },
+            userId: { type: "string", minLength: 1 },
           },
         },
         response: {
@@ -45,8 +46,8 @@ export default async function apiRoutes(
     },
     async (request, reply) => {
     try {
-      const { userId } = request.query as { userId?: string };
-      const puzzle = await wordSearchService.generatePuzzle(userId || "guest");
+      const { userId } = request.query as { userId: string };
+      const puzzle = await wordSearchService.generatePuzzle(userId);
       return { success: true, data: puzzle };
     } catch (error: any) {
       reply.status(500).send({ success: false, message: error.message });

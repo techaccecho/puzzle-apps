@@ -5,6 +5,7 @@ import fs from "node:fs";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import apiRoutes from "./routes/api.js";
+import errorUtil from "./errors/ErrorUtil.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,6 +47,22 @@ fastify.get("/", async (request, reply) => {
 
 // Serve wordsearch.html at the specified path
 fastify.get("/wordsearch/puzzle", async (request, reply) => {
+  const { userId } = request.query as { userId?: string };
+  
+  if (!userId) {
+    const errorPath = path.join(__dirname, ".", "fe/error.html");
+    let errorContent = fs.readFileSync(errorPath, "utf8");
+
+    let message = "A valid 'userId' parameter is required to access the puzzle."
+    errorContent = await errorUtil.createErrorContent(errorContent, "400 Bad Request",
+        "Something went wrong");
+
+    console.error(message);
+
+    reply.status(400).type("text/html").send(errorContent);
+    return;
+  }
+
   const filePath = path.join(__dirname, ".", "fe/word-search/wordsearch.html");
   let content = fs.readFileSync(filePath, "utf8");
   

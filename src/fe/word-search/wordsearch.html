@@ -17,6 +17,35 @@
       overflow: hidden;
     }
 
+    .error-container {
+        display: none; /* Hidden by default */
+        background: #fff;
+        color: #000;
+        font-family: "Times New Roman", Times, serif;
+        padding: 40px;
+        max-width: 600px;
+        z-index: 2000;
+        position: relative;
+        text-align: left;
+    }
+    .error-container h1 {
+        font-size: 2em;
+        margin: 0 0 10px;
+    }
+    .error-container hr {
+        border: 0;
+        border-top: 1px solid #ccc;
+        margin: 20px 0;
+    }
+    .error-container address {
+        font-style: italic;
+        font-size: 0.9em;
+        margin-top: 20px;
+    }
+    .error-container a {
+        color: #0000EE;
+    }
+
     .grid-wrapper {
       position: relative;
     }
@@ -133,7 +162,15 @@
 
 <body>
 
-<div class="grid-wrapper">
+<div class="error-container" id="errorPage">
+  <h1 id="errorTitle">Error</h1>
+  <p id="errorMessage"></p>
+  <hr>
+  <address>Web Server at puzzle-apps.vercel.app</address>
+  <p><a href="/">Return to Home</a></p>
+</div>
+
+<div class="grid-wrapper" id="gameContent">
   <canvas id="lineCanvas"></canvas>
   <div id="grid" class="grid"></div>
   <div class="reveal-container" id="revealContainer">
@@ -156,8 +193,17 @@
 const API_BASE_URL = "{{API_BASE_URL}}";
 
 async function fetchPuzzle() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlUserId = urlParams.get('userId');
+  
+  if (!urlUserId) {
+    throw new Error("Missing required 'userId' in URL parameters.");
+  }
+  
   const storedUserId = localStorage.getItem('wordsearch_userId');
-  const url = storedUserId ? `${API_BASE_URL}/puzzle/wordSearch?userId=${storedUserId}` : `${API_BASE_URL}/puzzle/wordSearch`;
+  
+  const userIdToUse = urlUserId || storedUserId;
+  const url = `${API_BASE_URL}/puzzle/wordSearch?userId=${userIdToUse}`;
   
   const response = await fetch(url);
   if (!response.ok) {
@@ -546,7 +592,10 @@ async function init() {
     }
   } catch (error) {
     console.error("Error initializing game:", error);
-    document.body.innerHTML = `<h1>Error</h1><p>${error.message}</p>`;
+    document.getElementById("gameContent").style.display = "none";
+    const errorPage = document.getElementById("errorPage");
+    errorPage.style.display = "block";
+    document.getElementById("errorMessage").textContent = error.message;
   }
 }
 
