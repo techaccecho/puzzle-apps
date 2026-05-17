@@ -6,7 +6,7 @@ import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastifyStatic from "@fastify/static";
 import apiRoutes from "./routes/api.js";
-import errorUtil from "./errors/ErrorUtil.js";
+import errorUtil from "./errors/error-util.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
-import urlShortenerService from "../../services/url-shortner/UrlShortenerService.js";
-import convexService from "../../services/convex/ConvexService.js";
+import urlShortenerService from "../../services/url-shortner/url-shortener-service.js";
+import convexService from "../../services/convex/convex-service.js";
 
 describe("UrlShortenerService Integration with Convex (Mock Mode)", () => {
   test("generateShortUrl - throws error if redirectUrl type is not found", async () => {

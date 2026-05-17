@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach } from "vitest";
-import convexService from "../../services/convex/ConvexService.js";
+import convexService from "../../services/convex/convex-service.js";
 
 describe("ConvexService", () => {
   beforeEach(() => {

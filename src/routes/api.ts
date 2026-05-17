@@ -1,8 +1,8 @@
 import { FastifyInstance, FastifyPluginOptions, FastifySchema } from "fastify";
-import wordSearchService from "../services/word-search/WordSearchService.js";
-import urlShortenerService from "../services/url-shortner/UrlShortenerService.js";
-import dictionaryService from "../services/word-search/DictionaryService.js";
-import adminService from "../services/admin-portal/adminService.js";
+import wordSearchService from "../services/word-search/word-search-service.js";
+import urlShortenerService from "../services/url-shortner/url-shortener-service.js";
+import dictionaryService from "../services/word-search/dictionary-service.js";
+import adminService from "../services/admin-portal/admin-service.js";
 
 const errorResponse = {
   type: "object",

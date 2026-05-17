@@ -1,5 +1,5 @@
 import { ConvexHttpClient } from "convex/browser";
-import { BaseApiService } from "../BaseApiService.js";
+import { BaseApiService } from "../base-api-service.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

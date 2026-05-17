@@ -1,7 +1,7 @@
-import { BaseApiService } from "../BaseApiService.js";
-import convexService from "../convex/ConvexService.js";
-import urlShortenerService from "../url-shortner/UrlShortenerService.js";
-import dictionaryService from "./DictionaryService.js";
+import { BaseApiService } from "../base-api-service.js";
+import convexService from "../convex/convex-service.js";
+import urlShortenerService from "../url-shortner/url-shortener-service.js";
+import dictionaryService from "./dictionary-service.js";
 
 interface Clue {
   word: string;

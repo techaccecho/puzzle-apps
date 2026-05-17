@@ -1,5 +1,5 @@
-import { BaseApiService } from "../BaseApiService.js";
-import convexService from "../convex/ConvexService.js";
+import { BaseApiService } from "../base-api-service.js";
+import convexService from "../convex/convex-service.js";
 
 class DictionaryService extends BaseApiService {
   constructor() {

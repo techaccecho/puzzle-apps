@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "vitest";
-import adminService from "../../services/admin-portal/adminService.js";
-import convexService from "../../services/convex/ConvexService.js";
+import adminService from "../../services/admin-portal/admin-service.js";
+import convexService from "../../services/convex/convex-service.js";
 
 describe("AdminService", () => {
   beforeEach(() => {

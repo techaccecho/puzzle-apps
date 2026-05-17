@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from "vitest";
-import wordSearchService from "../../services/word-search/WordSearchService.js";
-import convexService from "../../services/convex/ConvexService.js";
-import dictionaryService from "../../services/word-search/DictionaryService.js";
+import wordSearchService from "../../services/word-search/word-search-service.js";
+import convexService from "../../services/convex/convex-service.js";
+import dictionaryService from "../../services/word-search/dictionary-service.js";
 
 describe("WordSearchService", () => {
   beforeEach(() => {
