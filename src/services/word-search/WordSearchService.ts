@@ -15,12 +15,10 @@ interface FoundWord {
 
 interface PuzzleData {
   id: string;
-  words: string[];
   clues: Clue[];
   userId: string;
   shortUrl: string;
   grid: string[][];
-  size: number;
   foundWords: (string | FoundWord)[];
   completed: boolean;
 }
@@ -35,7 +33,7 @@ class WordSearchService extends BaseApiService {
   async generatePuzzle(userId: string) {
     let puzzleData: PuzzleData | null = null;
     const existingPuzzle = await convexService.query(
-      "puzzle:wordsearch:getByUserId",
+      "wordSearchPuzzles:getByUserId",
       { userId }
     );
 
@@ -44,7 +42,7 @@ class WordSearchService extends BaseApiService {
       puzzleData = existingPuzzle;
       this.puzzleCache.set(puzzleData!.id, puzzleData!);
     } else {
-      const mapping = await convexService.query("serviceMapping:get", { serviceName: "word-search" });
+      const mapping = await convexService.query("serviceMappings:get", { serviceName: "word-search" });
       const redirectType = mapping?.redirectUrlType || "puzzle-wordsearch";
       
       const shortUrl = await urlShortenerService.generateShortUrl(null, userId, redirectType);
@@ -61,12 +59,10 @@ class WordSearchService extends BaseApiService {
 
       puzzleData = {
         id: `puzzle_${Date.now()}`,
-        words: selectedWords,
         clues: clues,
         userId: userId,
         shortUrl: shortUrl,
         grid: grid,
-        size: size,
         foundWords: [],
         completed: false,
       };
@@ -74,7 +70,7 @@ class WordSearchService extends BaseApiService {
       this.puzzleCache.set(puzzleData.id, puzzleData);
 
       try {
-        await convexService.mutation("puzzle:wordsearch:create", puzzleData);
+        await convexService.mutation("wordSearchPuzzles:create", puzzleData);
       } catch (e) {
         console.error("Failed to store puzzle in Convex", e);
       }
@@ -91,7 +87,7 @@ class WordSearchService extends BaseApiService {
       })),
       userId: puzzleData!.userId,
       grid: puzzleData!.grid,
-      size: puzzleData!.size,
+      size: puzzleData!.grid.length,
       foundWords: puzzleData!.foundWords.map((w) => {
         const wordString = typeof w === "string" ? w : w.word;
         return {
@@ -109,7 +105,7 @@ class WordSearchService extends BaseApiService {
   
   async listPuzzles(filter: string = "ALL", numItems: number = 10, cursor?: string) {
     try {
-      const result = await convexService.query("puzzle:wordsearch:list", {
+      const result = await convexService.query("wordSearchPuzzles:list", {
         filter,
         numItems,
         cursor,
@@ -224,7 +220,7 @@ class WordSearchService extends BaseApiService {
       let puzzle = this.puzzleCache.get(puzzleId);
 
       if (!puzzle) {
-        puzzle = await convexService.query("puzzle:wordsearch:getById", {
+        puzzle = await convexService.query("wordSearchPuzzles:getById", {
           puzzleId,
           userId,
         });
@@ -251,16 +247,16 @@ class WordSearchService extends BaseApiService {
       const strippedWord = normalizedWord.replace(/[^a-z0-9]/g, "");
       const strippedReversed = reversedWord.replace(/[^a-z0-9]/g, "");
 
-      const matchForward = puzzle.words.find((w) => {
-        const nw = w.toLowerCase();
+      const matchForward = puzzle.clues.find((c) => {
+        const nw = c.word.toLowerCase();
         return (
           nw === normalizedWord || nw.replace(/[^a-z0-9]/g, "") === strippedWord
         );
       });
 
       const matchReverse = !matchForward
-        ? puzzle.words.find((w) => {
-            const nw = w.toLowerCase();
+        ? puzzle.clues.find((c) => {
+            const nw = c.word.toLowerCase();
             return (
               nw === reversedWord ||
               nw.replace(/[^a-z0-9]/g, "") === strippedReversed
@@ -272,7 +268,7 @@ class WordSearchService extends BaseApiService {
         return { success: false, message: "Invalid word for this puzzle" };
       }
 
-      const actualWord = (matchForward || matchReverse)!.toLowerCase();
+      const actualWord = (matchForward || matchReverse)!.word.toLowerCase();
       const usedCells = matchForward ? cells : cells.slice().reverse();
 
       const alreadyFound = puzzle.foundWords.some(
@@ -296,15 +292,15 @@ class WordSearchService extends BaseApiService {
         }
       }
 
-      const allFound = puzzle.words.every((w) =>
+      const allFound = puzzle.clues.every((c) =>
         puzzle!.foundWords.some(
-          (fw) => (typeof fw === "string" ? fw : fw.word) === w.toLowerCase()
+          (fw) => (typeof fw === "string" ? fw : fw.word) === c.word.toLowerCase()
         )
       );
 
       if (allFound) {
         try {
-          await convexService.mutation("puzzle:wordsearch:updateProgress", {
+          await convexService.mutation("wordSearchPuzzles:updateProgress", {
             puzzleId,
             word: actualWord,
             userId,
@@ -332,7 +328,7 @@ class WordSearchService extends BaseApiService {
       let puzzle = this.puzzleCache.get(puzzleId);
 
       if (!puzzle) {
-        puzzle = await convexService.query("puzzle:wordsearch:getById", {
+        puzzle = await convexService.query("wordSearchPuzzles:getById", {
           puzzleId,
           userId,
         });

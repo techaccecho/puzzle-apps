@@ -89,10 +89,10 @@ class ConvexService extends BaseApiService {
   async query(name: string, args: any = {}): Promise<any> {
     if (!this.client) {
       console.log(`[MOCK] Convex Query: ${name}`, args);
-      if (name === "urlShorter:getByCode" && args.shortCode) {
+      if (name === "shortUrls:getByCode" && args.shortCode) {
         return this.mockShortUrls.get(args.shortCode) || null;
       }
-      if (name === "puzzle:wordsearch:getById") {
+      if (name === "wordSearchPuzzles:getById") {
         const puzzle = this.mockPuzzles.get(args.puzzleId);
         if (puzzle && args.userId && puzzle.userId !== args.userId) {
           console.log(
@@ -103,7 +103,7 @@ class ConvexService extends BaseApiService {
         return puzzle || null;
       }
 
-      if (name === "puzzle:wordsearch:list") {
+      if (name === "wordSearchPuzzles:list") {
         let puzzles = Array.from(this.mockPuzzles.values());
         if (args.filter === "ACTIVE") {
           puzzles = puzzles.filter((p) => !p.completed);
@@ -123,26 +123,26 @@ class ConvexService extends BaseApiService {
           continueCursor: continueCursor,
         };
       }
-      if (name === "puzzle:wordsearch:getByUserId") {
+      if (name === "wordSearchPuzzles:getByUserId") {
         const puzzles = Array.from(this.mockPuzzles.values());
         const activePuzzle = puzzles.find(
           (p) => p.userId === args.userId && !p.completed
         );
         return activePuzzle || null;
       }
-      if (name === "urlShorter:getByUser") {
+      if (name === "shortUrls:getByUser") {
         const items = Array.from(this.mockShortUrls.values());
         return items.filter((item) => item.userId === args.userId);
       }
-      if (name === "urlShorter:list") {
+      if (name === "shortUrls:list") {
         return Array.from(this.mockShortUrls.values());
       }
-      if (name === "redirectUrl:get") {
+      if (name === "redirectUrls:get") {
         const type = args && args.type ? args.type : "default";
         
         // Check cache first
         if (this.redirectUrlCache.has(type)) {
-          console.log(`[MOCK] redirectUrl:get - Cache hit for ${type}`);
+          console.log(`[MOCK] redirectUrls:get - Cache hit for ${type}`);
           return this.redirectUrlCache.get(type);
         }
 
@@ -154,25 +154,25 @@ class ConvexService extends BaseApiService {
         
         return result;
       }
-      if (name === "redirectUrl:list") {
+      if (name === "redirectUrls:list") {
         return Array.from(this.mockRedirectUrls.entries()).map(([type, data]) => ({
           type,
           ...data,
         }));
       }
-      if (name === "serviceMapping:get") {
+      if (name === "serviceMappings:get") {
         return this.mockServiceMappings.get(args.serviceName) || null;
       }
-      if (name === "serviceMapping:list") {
+      if (name === "serviceMappings:list") {
         return Array.from(this.mockServiceMappings.entries()).map(([serviceName, data]) => ({
           serviceName,
           ...data,
         }));
       }
-      if (name === "dictionary:get") {
+      if (name === "dictionaries:get") {
         return this.mockDictionary.get(args.id) || null;
       }
-      if (name === "dictionary:list") {
+      if (name === "dictionaries:list") {
         const items = Array.from(this.mockDictionary.entries()).map(
           ([id, data]) => ({ id, ...data })
         );
@@ -190,26 +190,29 @@ class ConvexService extends BaseApiService {
         };
       }
     }
-    try {
-      return await this.client!.query(name as any, args);
-    } catch (error) {
-      console.error(`Convex Query Error [${name}]:`, error);
-      throw error;
+    if (this.client) {
+      try {
+        return await this.client.query(name as any, args);
+      } catch (error) {
+        console.error(`Convex Query Error [${name}]:`, error);
+        throw error;
+      }
     }
+    return null;
   }
 
   async mutation(name: string, args: any): Promise<any> {
     if (!this.client) {
       console.log(`[MOCK] Convex Mutation: ${name}`, args);
-      if (name === "puzzle:wordsearch:create") {
+      if (name === "wordSearchPuzzles:create") {
         this.mockPuzzles.set(args.id, args);
         return { success: true, id: args.id };
       }
-      if (name === "urlShorter:create") {
+      if (name === "shortUrls:create") {
         this.mockShortUrls.set(args.shortCode, args);
         return { success: true };
       }
-      if (name === "puzzle:wordsearch:updateProgress") {
+      if (name === "wordSearchPuzzles:updateProgress") {
         if (!args.puzzleId || !args.userId || !args.word) {
           return { success: false, message: "Missing fields in mock" };
         }
@@ -229,13 +232,13 @@ class ConvexService extends BaseApiService {
           return { success: false, message: "Invalid user" };
         }
       }
-      if (name === "redirectUrl:store" || name === "redirectUrl:update") {
+      if (name === "redirectUrls:store" || name === "redirectUrls:update") {
         const type = args.type || "default";
         this.mockRedirectUrls.set(type, { url: args.url });
         this.redirectUrlCache.set(type, { url: args.url });
         return { success: true, data: { type, url: args.url } };
       }
-      if (name === "dictionary:add") {
+      if (name === "dictionaries:add") {
         const ids = Array.from(this.mockDictionary.keys())
           .map((id) => parseInt(id))
           .filter((id) => !isNaN(id));
@@ -244,7 +247,7 @@ class ConvexService extends BaseApiService {
         this.mockDictionary.set(nextId, data);
         return { success: true, ...data };
       }
-      if (name === "dictionary:update") {
+      if (name === "dictionaries:update") {
         const existing = this.mockDictionary.get(args.id);
         if (!existing) return { success: false, message: "Word not found" };
         const updated = {
@@ -254,28 +257,31 @@ class ConvexService extends BaseApiService {
         this.mockDictionary.set(args.id, updated);
         return { success: true, id: args.id, ...updated };
       }
-      if (name === "redirectUrl:delete") {
+      if (name === "redirectUrls:delete") {
         const type = args.type || "default";
         this.mockRedirectUrls.delete(type);
         this.redirectUrlCache.delete(type);
         return { success: true };
       }
-      if (name === "serviceMapping:store") {
+      if (name === "serviceMappings:store") {
         this.mockServiceMappings.set(args.serviceName, { redirectUrlType: args.redirectUrlType });
         return { success: true, data: { serviceName: args.serviceName, redirectUrlType: args.redirectUrlType } };
       }
-      if (name === "serviceMapping:delete") {
+      if (name === "serviceMappings:delete") {
         this.mockServiceMappings.delete(args.serviceName);
         return { success: true };
       }
       return { success: true, mocked: true };
     }
-    try {
-      return await this.client!.mutation(name as any, args);
-    } catch (error) {
-      console.error(`Convex Mutation Error [${name}]:`, error);
-      throw error;
+    if (this.client) {
+      try {
+        return await this.client.mutation(name as any, args);
+      } catch (error) {
+        console.error(`Convex Mutation Error [${name}]:`, error);
+        throw error;
+      }
     }
+    return { success: false, message: "No Convex client and not handled by mock" };
   }
 }
 

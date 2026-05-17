@@ -9,7 +9,7 @@ class UrlShortenerService extends BaseApiService {
   async generateShortUrl(redirectUrl: string | null, userId: string, type = "default") {
     let urlToShorten = redirectUrl;
     if (!urlToShorten) {
-      const result = await convexService.query("redirectUrl:get", {
+      const result = await convexService.query("redirectUrls:get", {
         type,
       });
 
@@ -34,7 +34,7 @@ class UrlShortenerService extends BaseApiService {
       }
 
       try {
-        const existing = await convexService.query("urlShorter:getByCode", {
+        const existing = await convexService.query("shortUrls:getByCode", {
           shortCode,
         });
         if (!existing) {
@@ -48,7 +48,7 @@ class UrlShortenerService extends BaseApiService {
     }
 
     try {
-      await convexService.mutation("urlShorter:create", {
+      await convexService.mutation("shortUrls:create", {
         shortCode,
         redirectUrl: urlToShorten,
         userId,
@@ -63,7 +63,7 @@ class UrlShortenerService extends BaseApiService {
 
   async getShortUrlInfo(shortCode: string) {
     try {
-      const result = await convexService.query("urlShorter:getByCode", {
+      const result = await convexService.query("shortUrls:getByCode", {
         shortCode,
       });
       return result;
@@ -75,7 +75,7 @@ class UrlShortenerService extends BaseApiService {
 
   async getShortUrlsByUser(userId: string) {
     try {
-      return await convexService.query("urlShorter:getByUser", { userId });
+      return await convexService.query("shortUrls:getByUser", { userId });
     } catch (error) {
       console.error("Error retrieving short URLs for user:", error);
       return [];
@@ -84,7 +84,7 @@ class UrlShortenerService extends BaseApiService {
 
   async getRedirectUrlByCode(shortCode: string) {
     try {
-      const result = await convexService.query("urlShorter:getByCode", {
+      const result = await convexService.query("shortUrls:getByCode", {
         shortCode,
       });
       if (result && result.redirectUrl) {

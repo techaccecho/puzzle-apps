@@ -15,7 +15,7 @@ describe("UrlShortenerService Integration with Convex (Mock Mode)", () => {
     (convexService as any).mockRedirectUrls.clear();
     (convexService as any).redirectUrlCache.clear();
     // Seed the mock DB
-    await convexService.mutation("redirectUrl:store", { 
+    await convexService.mutation("redirectUrls:store", { 
       url: "https://success.com", 
       type: "known-type" 
     });
@@ -36,7 +36,7 @@ describe("UrlShortenerService Integration with Convex (Mock Mode)", () => {
 
   test("generateShortUrl - uses seeded redirect URL from config/redirectUrlData.json", async () => {
     // Seed it manually for the test to ensure it's present regardless of global state/cleanup
-    await convexService.mutation("redirectUrl:store", { 
+    await convexService.mutation("redirectUrls:store", { 
       url: "https://project-echo-game.vercel.app", 
       type: "puzzle-wordsearch" 
     });
@@ -50,13 +50,13 @@ describe("UrlShortenerService Integration with Convex (Mock Mode)", () => {
 
   test("generateShortUrl - uses service mapping to find redirect URL type", async () => {
     // Seed redirect URL
-    await convexService.mutation("redirectUrl:store", { 
+    await convexService.mutation("redirectUrls:store", { 
       url: "https://mapped-service.com", 
       type: "mapped-type" 
     });
 
     // Seed service mapping
-    await convexService.mutation("serviceMapping:store", {
+    await convexService.mutation("serviceMappings:store", {
       serviceName: "test-service",
       redirectUrlType: "mapped-type"
     });
@@ -64,7 +64,7 @@ describe("UrlShortenerService Integration with Convex (Mock Mode)", () => {
     // We can't easily call WordSearchService here without more setup, 
     // but we can verify the logic that WordSearchService will use.
     
-    const mapping = await convexService.query("serviceMapping:get", { serviceName: "test-service" });
+    const mapping = await convexService.query("serviceMappings:get", { serviceName: "test-service" });
     expect(mapping.redirectUrlType).toBe("mapped-type");
 
     const shortCode = await urlShortenerService.generateShortUrl(null, "user-mapped", mapping.redirectUrlType);

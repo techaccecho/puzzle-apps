@@ -35,10 +35,8 @@ describe("WordSearchService", () => {
         id: "p1",
         userId: "u1",
         completed: false,
-        words: ["test"],
         clues: [{ word: "test", question: "q" }],
-        grid: [[]],
-        size: 10,
+        grid: [["t"]],
         foundWords: [],
       };
       (convexService as any).mockPuzzles.set("p1", existing);
@@ -61,10 +59,8 @@ describe("WordSearchService", () => {
     const puzzle = {
       id: puzzleId,
       userId: userId,
-      words: words,
       clues: words.map((w) => ({ word: w, question: "q" })),
       grid: grid,
-      size: 12,
       foundWords: [],
       completed: false,
     };
@@ -167,9 +163,10 @@ describe("WordSearchService", () => {
       const puzzleWithNoCells = {
         id: "pNoCells",
         userId: "u1",
-        words: ["apple"],
+        clues: [{ word: "apple", question: "q" }],
         foundWords: [{ word: "apple" }], // Old format string-like or missing cells
         completed: false,
+        grid: [["a"]],
       };
       (convexService as any).mockPuzzles.set("pNoCells", puzzleWithNoCells);
       (wordSearchService as any).puzzleCache.set("pNoCells", puzzleWithNoCells);
@@ -183,8 +180,8 @@ describe("WordSearchService", () => {
       );
 
       expect(result.success).toBe(true);
-      const entry = puzzleWithNoCells.foundWords.find(
-        (fw: any) => fw.word === "apple"
+      const entry: any = puzzleWithNoCells.foundWords.find(
+        (fw: any) => (typeof fw === "string" ? fw : fw.word) === "apple"
       );
       expect(entry.cells).toEqual(cells);
     });
@@ -197,7 +194,7 @@ describe("WordSearchService", () => {
       const puzzle = {
         id: puzzleId,
         userId: userId,
-        words: ["a"],
+        clues: [{ word: "a", question: "q" }],
         foundWords: ["a"],
         shortUrl: "abc",
       };

@@ -8,7 +8,7 @@ class DictionaryService extends BaseApiService {
 
   async addWord(word: string, question: string) {
     try {
-      return await convexService.mutation("dictionary:add", { word, question });
+      return await convexService.mutation("dictionaries:add", { word, question });
     } catch (error) {
       console.error("Error adding word to dictionary:", error);
       throw error;
@@ -17,7 +17,7 @@ class DictionaryService extends BaseApiService {
 
   async updateWord(id: string, word?: string, question?: string) {
     try {
-      return await convexService.mutation("dictionary:update", {
+      return await convexService.mutation("dictionaries:update", {
         id,
         word,
         question,
@@ -30,7 +30,7 @@ class DictionaryService extends BaseApiService {
 
   async getWord(id: string) {
     try {
-      return await convexService.query("dictionary:get", { id });
+      return await convexService.query("dictionaries:get", { id });
     } catch (error) {
       console.error("Error fetching dictionary word:", error);
       throw error;
@@ -39,7 +39,7 @@ class DictionaryService extends BaseApiService {
 
   async getAllWords(pagination = { cursor: null as string | null, numItems: 10 }) {
     try {
-      return await convexService.query("dictionary:list", pagination);
+      return await convexService.query("dictionaries:list", pagination);
     } catch (error) {
       console.error("Error fetching dictionary list:", error);
       throw error;
@@ -48,7 +48,7 @@ class DictionaryService extends BaseApiService {
 
   async getRandomWords(count: number) {
     try {
-      const result = await convexService.query("dictionary:list", {
+      const result = await convexService.query("dictionaries:list", {
         numItems: 500,
       });
       const words = result.items || [];
@@ -92,7 +92,7 @@ class DictionaryService extends BaseApiService {
 
   async getWordsByStartingLetters(letters: string) {
     try {
-      const result = await convexService.query("dictionary:list", {
+      const result = await convexService.query("dictionaries:list", {
         numItems: 500,
       });
       const allWords = result.items || [];

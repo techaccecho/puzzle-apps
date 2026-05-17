@@ -5,7 +5,7 @@ A multi-service Fastify backend for a Wordsearch game with TypeScript, URL short
 ## Features
 
 - **Wordsearch Puzzle Service**: Generates puzzles with words dynamically selected based on a unique secret code. Features backend-driven grid generation for enhanced security.
-- **Security-First Design**: Prevents cheating by obfuscating word data, hiding the secret short URL until completion, and performing all word validations on the server side.
+- **Security-First Design**: Prevents cheating by obfuscating word data, hiding the secret short URL until completion, and performing all word validations on the server side using the pluralized database schema for consistent data access.
 - **URL Shortener Service**: Generates unique, 7-letter alphabetic codes with non-repeating letters that redirect to a configurable reward URL.
 - **Dictionary Service**: Manages a repository of 500+ words and tricky questions/clues (riddles and metaphors) for varied difficulty, ensuring coverage for every letter of the alphabet.
 - **Admin API**: Full CRUD capabilities for dictionary entries, type-based redirect URL management, and dynamic service mappings. Includes overviews for active puzzles and generated short URLs.
@@ -18,7 +18,7 @@ A multi-service Fastify backend for a Wordsearch game with TypeScript, URL short
 ## Security & Anti-Cheat
 
 To prevent users from finding words by inspecting the browser's source code or network traffic:
-- **Server-Side Generation**: The 12x12 grid and word placements are calculated entirely on the backend.
+- **Server-Side Generation**: The square grid (dynamically sized, typically 12x12 or larger) and word placements are calculated entirely on the backend. Grid dimensions are derived dynamically from the data structure.
 - **Dynamic Selection**: Words are selected from the dictionary such that their first letters form the secret short URL code.
 - **Word Obfuscation**: The API response to the client does **not** contain the list of words or the short URL. Instead, it provides a grid of letters and a list of clues.
 - **Opaque IDs**: Each clue is associated with an obfuscated ID rather than the word itself.
@@ -31,14 +31,14 @@ To prevent users from finding words by inspecting the browser's source code or n
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) (v20 or higher recommended)
-- [NPM](https://www.npmjs.com/) or [PNPM](https://pnpm.io/)
+- [NPM](https://www.npmjs.com/) or [PNPM](https://pnpm.io/) (Recommended)
 
 ## Installation
 
 1. Clone the repository.
 2. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 
 ## Configuration
@@ -54,25 +54,25 @@ The application uses environment variables for configuration. Create a `.env` fi
 ### Development Mode
 Runs the server with `tsx watch` for auto-reloads:
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 ### Production Build
 Compile TypeScript to JavaScript:
 ```bash
-npm run build
+pnpm run build
 ```
 
 ### Start Production Server
 ```bash
-npm start
+pnpm start
 ```
 The application will be available at `http://localhost:3000`.
 
 ## Testing
 Run the test suite using Vitest:
 ```bash
-npm test
+pnpm test
 ```
 
 ## API Documentation

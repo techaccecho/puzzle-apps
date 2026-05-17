@@ -9,7 +9,7 @@ class AdminService extends BaseApiService {
 
   async storeRedirectUrl(url: string, type = "default") {
     try {
-      return await convexService.mutation("redirectUrl:store", { url, type });
+      return await convexService.mutation("redirectUrls:store", { url, type });
     } catch (error) {
       console.error(`Error storing redirect URL for ${type}:`, error);
       throw error;
@@ -18,7 +18,7 @@ class AdminService extends BaseApiService {
 
   async getRedirectUrl(type = "default") {
     try {
-      return await convexService.query("redirectUrl:get", { type });
+      return await convexService.query("redirectUrls:get", { type });
     } catch (error) {
       console.error(`Error retrieving redirect URL for ${type}:`, error);
       throw error;
@@ -27,7 +27,7 @@ class AdminService extends BaseApiService {
 
   async listRedirectUrls() {
     try {
-      return await convexService.query("redirectUrl:list");
+      return await convexService.query("redirectUrls:list");
     } catch (error) {
       console.error("Error listing redirect URLs:", error);
       throw error;
@@ -36,7 +36,7 @@ class AdminService extends BaseApiService {
 
   async deleteRedirectUrl(type: string) {
     try {
-      return await convexService.mutation("redirectUrl:delete", { type });
+      return await convexService.mutation("redirectUrls:delete", { type });
     } catch (error) {
       console.error(`Error deleting redirect URL for ${type}:`, error);
       throw error;
@@ -46,12 +46,12 @@ class AdminService extends BaseApiService {
   async storeServiceMapping(serviceName: string, redirectUrlType: string) {
     try {
       // Validate that the redirectUrlType exists
-      const redirectUrl = await convexService.query("redirectUrl:get", { type: redirectUrlType });
+      const redirectUrl = await convexService.query("redirectUrls:get", { type: redirectUrlType });
       if (!redirectUrl) {
         throw new Error(`Redirect URL type '${redirectUrlType}' does not exist.`);
       }
 
-      return await convexService.mutation("serviceMapping:store", { serviceName, redirectUrlType });
+      return await convexService.mutation("serviceMappings:store", { serviceName, redirectUrlType });
     } catch (error) {
       console.error(`Error storing service mapping for ${serviceName}:`, error);
       throw error;
@@ -60,7 +60,7 @@ class AdminService extends BaseApiService {
 
   async listServiceMappings() {
     try {
-      return await convexService.query("serviceMapping:list");
+      return await convexService.query("serviceMappings:list");
     } catch (error) {
       console.error("Error listing service mappings:", error);
       throw error;
@@ -69,7 +69,7 @@ class AdminService extends BaseApiService {
 
   async deleteServiceMapping(serviceName: string) {
     try {
-      return await convexService.mutation("serviceMapping:delete", { serviceName });
+      return await convexService.mutation("serviceMappings:delete", { serviceName });
     } catch (error) {
       console.error(`Error deleting service mapping for ${serviceName}:`, error);
       throw error;
@@ -78,7 +78,7 @@ class AdminService extends BaseApiService {
 
   async getServiceMapping(serviceName: string) {
     try {
-      return await convexService.query("serviceMapping:get", { serviceName });
+      return await convexService.query("serviceMappings:get", { serviceName });
     } catch (error) {
       console.error(`Error retrieving service mapping for ${serviceName}:`, error);
       throw error;
@@ -87,7 +87,7 @@ class AdminService extends BaseApiService {
   
   async listPuzzles(filter?: string, cursor?: string, numItems?: number) {
     try {
-      return await convexService.query("puzzle:wordsearch:list", { filter, cursor, numItems });
+      return await convexService.query("wordSearchPuzzles:list", { filter, cursor, numItems });
     } catch (error) {
       console.error("Error listing puzzles:", error);
       throw error;
@@ -96,7 +96,7 @@ class AdminService extends BaseApiService {
 
   async listShortUrls() {
     try {
-      return await convexService.query("urlShorter:list");
+      return await convexService.query("shortUrls:list");
     } catch (error) {
       console.error("Error listing short URLs:", error);
       throw error;
