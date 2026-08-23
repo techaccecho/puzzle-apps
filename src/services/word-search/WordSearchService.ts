@@ -320,6 +320,19 @@ class WordSearchService extends BaseApiService {
 
       if (allFound) {
         puzzle.completed = true;
+        const STATE_SERVICE_URL =
+          process.env.STATE_SERVICE_URL || "http://localhost:3004";
+        fetch(`${STATE_SERVICE_URL}/state-api/player/step/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            stepId: "step_02_wordsearch",
+            customData: { shortUrl: puzzle.shortUrl },
+          }),
+        }).catch((err) =>
+          console.warn("Failed to notify state-service on allFound:", err)
+        );
       }
 
       this.puzzleCache.set(puzzleId, puzzle);
