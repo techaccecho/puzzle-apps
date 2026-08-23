@@ -16,6 +16,8 @@ class ConvexService extends BaseApiService {
   private mockShortUrls = new Map<string, any>();
   private mockDictionary = new Map<string, any>();
 
+
+
   constructor() {
     super();
 
@@ -77,6 +79,9 @@ class ConvexService extends BaseApiService {
       console.error("Error loading redirect URL seed data:", error);
     }
 
+
+
+
     const convexUrl = process.env.CONVEX_URL;
     if (convexUrl) {
       this.client = new ConvexHttpClient(convexUrl);
@@ -87,8 +92,15 @@ class ConvexService extends BaseApiService {
   }
 
   async query(name: string, args: any = {}): Promise<any> {
-    if (!this.client) {
-      console.log(`[MOCK] Convex Query: ${name}`, args);
+    const isLocalService =
+      !this.client ||
+      name.startsWith("puzzle:") ||
+      name.startsWith("urlShorter:") ||
+      name.startsWith("redirectUrl:") ||
+      name.startsWith("serviceMapping:") ||
+      name.startsWith("dictionary:");
+
+    if (isLocalService) {
       if (name === "urlShorter:getByCode" && args.shortCode) {
         return this.mockShortUrls.get(args.shortCode) || null;
       }
@@ -125,10 +137,10 @@ class ConvexService extends BaseApiService {
       }
       if (name === "puzzle:wordsearch:getByUserId") {
         const puzzles = Array.from(this.mockPuzzles.values());
-        const activePuzzle = puzzles.find(
-          (p) => p.userId === args.userId && !p.completed
-        );
-        return activePuzzle || null;
+        const userPuzzles = puzzles.filter((p) => p.userId === args.userId);
+        if (userPuzzles.length === 0) return null;
+        const activePuzzle = userPuzzles.find((p) => !p.completed);
+        return activePuzzle || userPuzzles[userPuzzles.length - 1];
       }
       if (name === "urlShorter:getByUser") {
         const items = Array.from(this.mockShortUrls.values());
@@ -199,8 +211,15 @@ class ConvexService extends BaseApiService {
   }
 
   async mutation(name: string, args: any): Promise<any> {
-    if (!this.client) {
-      console.log(`[MOCK] Convex Mutation: ${name}`, args);
+    const isLocalService =
+      !this.client ||
+      name.startsWith("puzzle:") ||
+      name.startsWith("urlShorter:") ||
+      name.startsWith("redirectUrl:") ||
+      name.startsWith("serviceMapping:") ||
+      name.startsWith("dictionary:");
+
+    if (isLocalService) {
       if (name === "puzzle:wordsearch:create") {
         this.mockPuzzles.set(args.id, args);
         return { success: true, id: args.id };
@@ -280,3 +299,6 @@ class ConvexService extends BaseApiService {
 }
 
 export default new ConvexService();
+
+
+

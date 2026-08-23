@@ -27,22 +27,35 @@ interface PuzzleData {
 
 class WordSearchService extends BaseApiService {
   private puzzleCache = new Map<string, PuzzleData>();
+  private userPuzzleCache = new Map<string, PuzzleData>();
 
   constructor() {
     super();
   }
 
-  async generatePuzzle(userId: string) {
-    let puzzleData: PuzzleData | null = null;
-    const existingPuzzle = await convexService.query(
-      "puzzle:wordsearch:getByUserId",
-      { userId }
-    );
+  clearCache() {
+    this.puzzleCache.clear();
+    this.userPuzzleCache.clear();
+  }
 
-    if (existingPuzzle) {
-      console.log(`Using existing puzzle for user ${userId}: ${existingPuzzle.id}`);
-      puzzleData = existingPuzzle;
-      this.puzzleCache.set(puzzleData!.id, puzzleData!);
+  async generatePuzzle(userId: string) {
+    let puzzleData: PuzzleData | null = this.userPuzzleCache.get(userId) || null;
+
+    if (!puzzleData) {
+      const existingPuzzle = await convexService.query(
+        "puzzle:wordsearch:getByUserId",
+        { userId }
+      );
+
+      if (existingPuzzle) {
+        console.log(`Using existing puzzle for user ${userId}: ${existingPuzzle.id}`);
+        puzzleData = existingPuzzle;
+      }
+    }
+
+    if (puzzleData) {
+      this.puzzleCache.set(puzzleData.id, puzzleData);
+      this.userPuzzleCache.set(userId, puzzleData);
     } else {
       const mapping = await convexService.query("serviceMapping:get", { serviceName: "word-search" });
       const redirectType = mapping?.redirectUrlType || "puzzle-wordsearch";
@@ -72,6 +85,7 @@ class WordSearchService extends BaseApiService {
       };
 
       this.puzzleCache.set(puzzleData.id, puzzleData);
+      this.userPuzzleCache.set(userId, puzzleData);
 
       try {
         await convexService.mutation("puzzle:wordsearch:create", puzzleData);
@@ -92,6 +106,8 @@ class WordSearchService extends BaseApiService {
       userId: puzzleData!.userId,
       grid: puzzleData!.grid,
       size: puzzleData!.size,
+      completed: puzzleData!.completed,
+      shortUrl: puzzleData!.shortUrl,
       foundWords: puzzleData!.foundWords.map((w) => {
         const wordString = typeof w === "string" ? w : w.word;
         return {
@@ -303,17 +319,22 @@ class WordSearchService extends BaseApiService {
       );
 
       if (allFound) {
-        try {
-          await convexService.mutation("puzzle:wordsearch:updateProgress", {
-            puzzleId,
-            word: actualWord,
-            userId,
-            allFound: true,
-            foundWords: puzzle.foundWords,
-          });
-        } catch (dbError) {
-          console.error("Failed to sync completion to DB", dbError);
-        }
+        puzzle.completed = true;
+      }
+
+      this.puzzleCache.set(puzzleId, puzzle);
+      this.userPuzzleCache.set(userId, puzzle);
+
+      try {
+        await convexService.mutation("puzzle:wordsearch:updateProgress", {
+          puzzleId,
+          word: actualWord,
+          userId,
+          allFound,
+          foundWords: puzzle.foundWords,
+        });
+      } catch (dbError) {
+        console.error("Failed to sync word progress to DB", dbError);
       }
 
       return {
