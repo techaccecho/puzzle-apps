@@ -197,6 +197,18 @@ export default async function apiRoutes(
         return;
       }
 
+      // Notify central state-service of Step 2 Wordsearch completion
+      const STATE_SERVICE_URL = process.env.STATE_SERVICE_URL || "http://localhost:3004";
+      try {
+        await fetch(`${STATE_SERVICE_URL}/state-api/player/step/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, stepId: "step_02_wordsearch" }),
+        });
+      } catch (err) {
+        console.warn("Failed to notify state-service of step_02_wordsearch completion", err);
+      }
+
       return {
         success: true,
         data: {
@@ -982,3 +994,4 @@ export default async function apiRoutes(
     }
   );
 }
+

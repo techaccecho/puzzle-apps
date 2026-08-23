@@ -7,7 +7,7 @@ describe("WordSearchService", () => {
   beforeEach(() => {
     (convexService as any).mockPuzzles.clear();
     (convexService as any).mockDictionary.clear();
-    (wordSearchService as any).puzzleCache.clear();
+    wordSearchService.clearCache();
   });
 
   describe("generatePuzzle", () => {

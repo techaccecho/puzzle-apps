@@ -69,7 +69,22 @@ async function fetchCompletionData() {
 }
 
 function redirectToShortUrl(shortCode) {
-    window.location.href = `${API_BASE_URL}/shortUrl/${shortCode}`;
+    const targetUrl = `${API_BASE_URL}/shortUrl/${shortCode}`;
+    try {
+        const win = window.open(targetUrl, '_blank');
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+            // Fallback anchor click for strict popup blockers
+            const link = document.createElement('a');
+            link.href = targetUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    } catch (_) {
+        window.location.href = targetUrl;
+    }
 }
 
 /* =========================
@@ -282,6 +297,9 @@ async function showMysteriousReveal(shortCode) {
     
     finalRevealEl.textContent = shortCode.toUpperCase();
     finalRevealEl.style.opacity = "1";
+    finalRevealEl.style.cursor = "pointer";
+    finalRevealEl.title = "Click to open destination in a new tab";
+    finalRevealEl.onclick = () => redirectToShortUrl(shortCode);
     
     await new Promise(r => setTimeout(r, 3000));
     redirectToShortUrl(shortCode);
@@ -400,6 +418,22 @@ async function init() {
                 }
             });
             updateRevealUI();
+        }
+
+        // If puzzle is already completed on reload, retrigger mysterious reveal and redirect
+        if (data.completed || (clues.length > 0 && foundWords.size === clues.length)) {
+            setTimeout(async () => {
+                let targetShortUrl = data.shortUrl;
+                if (!targetShortUrl) {
+                    const compData = await fetchCompletionData();
+                    if (compData && compData.shortUrl) {
+                        targetShortUrl = compData.shortUrl;
+                    }
+                }
+                if (targetShortUrl) {
+                    showMysteriousReveal(targetShortUrl);
+                }
+            }, 500);
         }
     } catch (error) {
         console.error("Error initializing game:", error);
