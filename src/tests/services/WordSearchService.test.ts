@@ -1,214 +1,364 @@
-import { describe, test, expect, beforeEach } from "vitest";
-import wordSearchService from "../../services/word-search/WordSearchService.js";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import convexService from "../../services/convex/ConvexService.js";
-import dictionaryService from "../../services/word-search/DictionaryService.js";
+import wordSearchService from "../../services/word-search/WordSearchService.js";
 
 describe("WordSearchService", () => {
-  beforeEach(() => {
-    (convexService as any).mockPuzzles.clear();
-    (convexService as any).mockDictionary.clear();
-    wordSearchService.clearCache();
-  });
+	beforeEach(() => {
+		vi.restoreAllMocks();
+		wordSearchService.clearCache();
+		vi.stubGlobal(
+			"fetch",
+			vi.fn().mockResolvedValue({
+				ok: true,
+				json: async () => ({}),
+			}),
+		);
+	});
 
-  describe("generatePuzzle", () => {
-    test("creates a new puzzle if none exists for user", async () => {
-      // Seed dictionary so it can pick words
-      await dictionaryService.addWord("apple", "q1");
-      await dictionaryService.addWord("banana", "q2");
-      await dictionaryService.addWord("cherry", "q3");
-      await dictionaryService.addWord("date", "q4");
-      await dictionaryService.addWord("elderberry", "q5");
-      await dictionaryService.addWord("fig", "q6");
-      await dictionaryService.addWord("grape", "q7");
+	afterEach(() => {
+		vi.restoreAllMocks();
+		vi.unstubAllGlobals();
+	});
 
-      const userId = "u1";
-      const puzzle = await wordSearchService.generatePuzzle(userId);
+	describe("generatePuzzle", () => {
+		test("creates a new puzzle if none exists for user", async () => {
+			const mockDb = new Map<string, any>();
+			vi.spyOn(convexService, "query").mockImplementation(
+				async (name, args: any) => {
+					if (name === "puzzle:wordsearch:getByUserId") {
+						return mockDb.get(args.userId) || null;
+					}
+					if (name === "serviceMapping:get") {
+						return { redirectUrlType: "puzzle-wordsearch" };
+					}
+					if (name === "redirectUrl:get") {
+						return { url: "http://example.com" };
+					}
+					if (name === "urlShorter:getByCode") {
+						return null;
+					}
+					if (name === "dictionary:list") {
+						return {
+							items: [
+								{ word: "apple", question: "q1" },
+								{ word: "banana", question: "q2" },
+								{ word: "cherry", question: "q3" },
+								{ word: "date", question: "q4" },
+								{ word: "elderberry", question: "q5" },
+								{ word: "fig", question: "q6" },
+								{ word: "grape", question: "q7" },
+							],
+						};
+					}
+					return null;
+				},
+			);
+			vi.spyOn(convexService, "mutation").mockImplementation(
+				async (name, args: any) => {
+					if (name === "puzzle:wordsearch:create") {
+						mockDb.set(args.userId, args);
+						return args;
+					}
+					if (name === "urlShorter:create") {
+						return args;
+					}
+					return { success: true };
+				},
+			);
 
-      expect(puzzle).toBeDefined();
-      expect(puzzle.userId).toBe(userId);
-      expect(puzzle.grid).toBeDefined();
-      expect(puzzle.clues).toHaveLength(7); // ShortUrl is 7 chars, so 7 words
-    });
+			const userId = "u1";
+			const puzzle = await wordSearchService.generatePuzzle(userId);
 
-    test("returns existing active puzzle if one exists", async () => {
-      const existing = {
-        id: "p1",
-        userId: "u1",
-        completed: false,
-        words: ["test"],
-        clues: [{ word: "test", question: "q" }],
-        grid: [[]],
-        size: 10,
-        foundWords: [],
-      };
-      (convexService as any).mockPuzzles.set("p1", existing);
+			expect(puzzle).toBeDefined();
+			expect(puzzle.userId).toBe(userId);
+			expect(puzzle.grid).toBeDefined();
+			expect(puzzle.clues).toHaveLength(7); // ShortUrl is 7 chars, so 7 words
+		});
 
-      const puzzle = await wordSearchService.generatePuzzle("u1");
-      expect(puzzle.id).toBe("p1");
-    });
-  });
+		test("returns existing active puzzle if one exists", async () => {
+			const existing = {
+				id: "p1",
+				userId: "u1",
+				completed: false,
+				words: ["test"],
+				clues: [{ word: "test", question: "q" }],
+				grid: [[]],
+				size: 10,
+				foundWords: [],
+				shortUrl: "testurl",
+			};
+			vi.spyOn(convexService, "query").mockImplementation(
+				async (name, args: any) => {
+					if (
+						name === "puzzle:wordsearch:getByUserId" &&
+						args.userId === "u1"
+					) {
+						return existing;
+					}
+					return null;
+				},
+			);
 
-  describe("validateWord", () => {
-    const puzzleId = "p1";
-    const userId = "u1";
-    const words = ["backend", "express"];
-    const grid = Array(12)
-      .fill(0)
-      .map(() => Array(12).fill("a"));
-    // Place 'backend' at (0,0) horizontally
-    for (let i = 0; i < "backend".length; i++) grid[0][i] = "backend"[i];
+			const puzzle = await wordSearchService.generatePuzzle("u1");
+			expect(puzzle.id).toBe("p1");
+		});
+	});
 
-    const puzzle = {
-      id: puzzleId,
-      userId: userId,
-      words: words,
-      clues: words.map((w) => ({ word: w, question: "q" })),
-      grid: grid,
-      size: 12,
-      foundWords: [],
-      completed: false,
-    };
+	describe("validateWord", () => {
+		const puzzleId = "p1";
+		const userId = "u1";
+		const words = ["backend", "express"];
+		const grid = Array(12)
+			.fill(0)
+			.map(() => Array(12).fill("a"));
+		// Place 'backend' at (0,0) horizontally
+		for (let i = 0; i < "backend".length; i++) grid[0][i] = "backend"[i];
 
-    beforeEach(() => {
-      (convexService as any).mockPuzzles.set(
-        puzzleId,
-        JSON.parse(JSON.stringify(puzzle))
-      );
-      (wordSearchService as any).puzzleCache.set(
-        puzzleId,
-        (convexService as any).mockPuzzles.get(puzzleId)
-      );
-    });
+		const puzzle = {
+			id: puzzleId,
+			userId: userId,
+			words: words,
+			clues: words.map((w) => ({ word: w, question: "q" })),
+			grid: grid,
+			size: 12,
+			foundWords: [] as any[],
+			completed: false,
+			shortUrl: "testurl",
+		};
 
-    test("validates a correct word forward", async () => {
-      const cells = "backend".split("").map((_, i) => ({ x: i, y: 0 }));
-      const result = await wordSearchService.validateWord(
-        puzzleId,
-        "backend",
-        userId,
-        cells
-      );
+		let dbPuzzle: any;
 
-      expect(result.success).toBe(true);
-      expect(result.word).toBe("backend");
-      expect(result.cells).toEqual(cells);
-    });
+		beforeEach(() => {
+			dbPuzzle = JSON.parse(JSON.stringify(puzzle));
+			(wordSearchService as any).puzzleCache.set(puzzleId, dbPuzzle);
+			(wordSearchService as any).userPuzzleCache.set(userId, dbPuzzle);
 
-    test("validates a correct word backward", async () => {
-      const cells = "backend"
-        .split("")
-        .map((_, i) => ({ x: i, y: 0 }))
-        .reverse();
-      const result = await wordSearchService.validateWord(
-        puzzleId,
-        "dnekcab",
-        userId,
-        cells
-      );
+			vi.spyOn(convexService, "query").mockImplementation(
+				async (name, args: any) => {
+					if (
+						name === "puzzle:wordsearch:getById" &&
+						args.puzzleId === puzzleId
+					) {
+						return dbPuzzle;
+					}
+					return null;
+				},
+			);
 
-      expect(result.success).toBe(true);
-      expect(result.word).toBe("backend");
-      // cells should be reversed back to forward order in response
-      expect(result.cells).toEqual(cells.slice().reverse());
-    });
+			vi.spyOn(convexService, "mutation").mockImplementation(
+				async (name, args: any) => {
+					if (name === "puzzle:wordsearch:updateProgress") {
+						dbPuzzle.foundWords = args.foundWords;
+						if (args.allFound) {
+							dbPuzzle.completed = true;
+						}
+						return dbPuzzle;
+					}
+					return { success: true };
+				},
+			);
+		});
 
-    test("rejects an invalid word", async () => {
-      const result = await wordSearchService.validateWord(
-        puzzleId,
-        "invalid",
-        userId,
-        []
-      );
-      expect(result.success).toBe(false);
-    });
+		test("validates a correct word forward", async () => {
+			const cells = "backend".split("").map((_, i) => ({ x: i, y: 0 }));
+			const result = await wordSearchService.validateWord(
+				puzzleId,
+				"backend",
+				userId,
+				cells,
+			);
 
-    test("denies access if userId mismatch", async () => {
-      const result = await wordSearchService.validateWord(
-        puzzleId,
-        "backend",
-        "wrongUser",
-        []
-      );
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("Access denied");
-    });
+			expect(result.success).toBe(true);
+			expect(result.word).toBe("backend");
+			expect(result.cells).toEqual(cells);
+		});
 
-    test("completes puzzle when last word is found", async () => {
-      // Find first word
-      await wordSearchService.validateWord(puzzleId, "backend", userId, []);
-      // Find second word
-      const result = await wordSearchService.validateWord(
-        puzzleId,
-        "express",
-        userId,
-        []
-      );
+		test("validates a correct word backward", async () => {
+			const cells = "backend"
+				.split("")
+				.map((_, i) => ({ x: i, y: 0 }))
+				.reverse();
+			const result = await wordSearchService.validateWord(
+				puzzleId,
+				"dnekcab",
+				userId,
+				cells,
+			);
 
-      expect(result.success).toBe(true);
-      const cached = (wordSearchService as any).puzzleCache.get(puzzleId);
-      expect(cached.foundWords).toHaveLength(2);
-      // In mock mode, updateProgress is called
-      const dbPuzzle = (convexService as any).mockPuzzles.get(puzzleId);
-      expect(dbPuzzle.completed).toBe(true);
-    });
+			expect(result.success).toBe(true);
+			expect(result.word).toBe("backend");
+			// cells should be reversed back to forward order in response
+			expect(result.cells).toEqual(cells.slice().reverse());
+		});
 
-    test("returns false if puzzle missing in cache and DB", async () => {
-      const result = await wordSearchService.validateWord(
-        "missing",
-        "word",
-        "user",
-        []
-      );
-      expect(result.success).toBe(false);
-      expect(result.message).toBe("Puzzle not found");
-    });
+		test("rejects an invalid word", async () => {
+			const result = await wordSearchService.validateWord(
+				puzzleId,
+				"invalid",
+				userId,
+				[],
+			);
+			expect(result.success).toBe(false);
+		});
 
-    test("updates cells if existing entry has no cells", async () => {
-      const puzzleWithNoCells = {
-        id: "pNoCells",
-        userId: "u1",
-        words: ["apple"],
-        foundWords: [{ word: "apple" }], // Old format string-like or missing cells
-        completed: false,
-      };
-      (convexService as any).mockPuzzles.set("pNoCells", puzzleWithNoCells);
-      (wordSearchService as any).puzzleCache.set("pNoCells", puzzleWithNoCells);
+		test("denies access if userId mismatch", async () => {
+			const result = await wordSearchService.validateWord(
+				puzzleId,
+				"backend",
+				"wrongUser",
+				[],
+			);
+			expect(result.success).toBe(false);
+			expect(result.message).toBe("Access denied");
+		});
 
-      const cells = [{ x: 0, y: 0 }];
-      const result = await wordSearchService.validateWord(
-        "pNoCells",
-        "apple",
-        "u1",
-        cells
-      );
+		test("completes puzzle when last word is found", async () => {
+			// Find first word
+			await wordSearchService.validateWord(puzzleId, "backend", userId, []);
+			// Find second word
+			const result = await wordSearchService.validateWord(
+				puzzleId,
+				"express",
+				userId,
+				[],
+			);
 
-      expect(result.success).toBe(true);
-      const entry = puzzleWithNoCells.foundWords.find(
-        (fw: any) => fw.word === "apple"
-      );
-      expect(entry.cells).toEqual(cells);
-    });
-  });
+			expect(result.success).toBe(true);
+			const cached = (wordSearchService as any).puzzleCache.get(puzzleId);
+			expect(cached.foundWords).toHaveLength(2);
+			expect(dbPuzzle.completed).toBe(true);
+		});
 
-  describe("getPuzzleCompletionData", () => {
-    test("returns shortUrl for completed puzzle", async () => {
-      const puzzleId = "p1";
-      const userId = "u1";
-      const puzzle = {
-        id: puzzleId,
-        userId: userId,
-        words: ["a"],
-        foundWords: ["a"],
-        shortUrl: "abc",
-      };
-      (convexService as any).mockPuzzles.set(puzzleId, puzzle);
-      (wordSearchService as any).puzzleCache.set(puzzleId, puzzle);
+		test("returns false if puzzle missing in cache and DB", async () => {
+			wordSearchService.clearCache();
+			vi.spyOn(convexService, "query").mockResolvedValue(null);
 
-      const result = await wordSearchService.getPuzzleCompletionData(
-        puzzleId,
-        userId
-      );
-      expect(result!.shortUrl).toBe("abc");
-    });
-  });
+			const result = await wordSearchService.validateWord(
+				"missing",
+				"word",
+				"user",
+				[],
+			);
+			expect(result.success).toBe(false);
+			expect(result.message).toBe("Puzzle not found");
+		});
+
+		test("updates cells if existing entry has no cells", async () => {
+			const puzzleWithNoCells = {
+				id: "pNoCells",
+				userId: "u1",
+				words: ["apple"],
+				foundWords: [{ word: "apple" }],
+				completed: false,
+				shortUrl: "testurl",
+			};
+			(wordSearchService as any).puzzleCache.set("pNoCells", puzzleWithNoCells);
+
+			const cells = [{ x: 0, y: 0 }];
+			const result = await wordSearchService.validateWord(
+				"pNoCells",
+				"apple",
+				"u1",
+				cells,
+			);
+
+			expect(result.success).toBe(true);
+			const entry = puzzleWithNoCells.foundWords.find(
+				(fw: any) => fw.word === "apple",
+			);
+			expect(entry.cells).toEqual(cells);
+		});
+	});
+
+	describe("getPuzzleCompletionData", () => {
+		test("returns shortUrl for completed puzzle", async () => {
+			const puzzleId = "p1";
+			const userId = "u1";
+			const puzzle = {
+				id: puzzleId,
+				userId: userId,
+				words: ["a"],
+				foundWords: ["a"],
+				shortUrl: "abc",
+			};
+			(wordSearchService as any).puzzleCache.set(puzzleId, puzzle);
+
+			const result = await wordSearchService.getPuzzleCompletionData(
+				puzzleId,
+				userId,
+			);
+			expect(result!.shortUrl).toBe("abc");
+		});
+	});
+
+	describe("isPuzzleCompletedForUser", () => {
+		test("returns false when user has no puzzle", async () => {
+			vi.spyOn(convexService, "query").mockResolvedValue(null);
+			const isCompleted =
+				await wordSearchService.isPuzzleCompletedForUser("unknown-user");
+			expect(isCompleted).toBe(false);
+		});
+
+		test("returns false when user puzzle is not completed", async () => {
+			const puzzleId = "p_in_progress";
+			const userId = "u_progress";
+			const puzzle = {
+				id: puzzleId,
+				userId,
+				words: ["apple"],
+				foundWords: [],
+				completed: false,
+			};
+			(wordSearchService as any).userPuzzleCache.set(userId, puzzle);
+
+			const isCompleted =
+				await wordSearchService.isPuzzleCompletedForUser(userId);
+			expect(isCompleted).toBe(false);
+		});
+
+		test("returns true when user puzzle is completed in cache or DB", async () => {
+			const puzzleId = "p_done";
+			const userId = "u_done";
+			const puzzle = {
+				id: puzzleId,
+				userId,
+				words: ["apple"],
+				foundWords: ["apple"],
+				completed: true,
+			};
+			(wordSearchService as any).userPuzzleCache.set(userId, puzzle);
+
+			const isCompleted =
+				await wordSearchService.isPuzzleCompletedForUser(userId);
+			expect(isCompleted).toBe(true);
+		});
+	});
+
+	describe("resetPuzzleForUser", () => {
+		test("clears cached puzzle and calls mutation", async () => {
+			const mutationSpy = vi
+				.spyOn(convexService, "mutation")
+				.mockResolvedValue({ success: true } as any);
+			const p = {
+				id: "p_reset",
+				userId: "u_reset",
+				words: ["apple"],
+				foundWords: [],
+				completed: false,
+				shortUrl: "s",
+			};
+			(wordSearchService as any).puzzleCache.set("p_reset", p);
+			(wordSearchService as any).userPuzzleCache.set("u_reset", p);
+
+			await wordSearchService.resetPuzzleForUser("u_reset");
+
+			expect((wordSearchService as any).userPuzzleCache.has("u_reset")).toBe(
+				false,
+			);
+			expect((wordSearchService as any).puzzleCache.has("p_reset")).toBe(false);
+			expect(mutationSpy).toHaveBeenCalledWith("puzzle:wordsearch:reset", {
+				userId: "u_reset",
+			});
+		});
+	});
 });

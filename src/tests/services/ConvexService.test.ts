@@ -1,160 +1,180 @@
-import { describe, test, expect, beforeEach } from "vitest";
-import convexService from "../../services/convex/ConvexService.js";
+import { beforeEach, describe, expect, test, vi } from "vitest";
+import { validateEnv } from "../../config/env.js";
+import convexService, {
+	ConvexService,
+} from "../../services/convex/ConvexService.js";
 
-describe("ConvexService", () => {
-  beforeEach(() => {
-    (convexService as any).mockPuzzles.clear();
-    (convexService as any).mockRedirectUrls.clear();
-    (convexService as any).redirectUrlCache.clear();
-    (convexService as any).mockServiceMappings.clear();
-    (convexService as any).mockShortUrls.clear();
-  });
+describe("ConvexService & Environment Configuration (Mock Mode Disabled)", () => {
+	describe("Environment Variable Requirements", () => {
+		test("fails validation when CONVEX_URL is missing", () => {
+			expect(() =>
+				validateEnv({
+					PORT: "3005",
+					API_BASE_URL: "http://localhost:3005/v1/api",
+					STATE_SERVICE_URL: "http://localhost:3004",
+				}),
+			).toThrow(/Missing required environment variable\(s\): CONVEX_URL/);
+		});
 
-  describe("query (Mock Mode)", () => {
-    test("puzzle:wordsearch:getById - returns puzzle if exists and user matches", async () => {
-      const puzzle = {
-        id: "p1",
-        userId: "u1",
-        words: ["test"],
-        foundWords: [],
-        completed: false,
-      };
-      (convexService as any).mockPuzzles.set("p1", puzzle);
+		test("fails validation when PORT is missing", () => {
+			expect(() =>
+				validateEnv({
+					CONVEX_URL: "https://mock.convex.cloud",
+					API_BASE_URL: "http://localhost:3005/v1/api",
+					STATE_SERVICE_URL: "http://localhost:3004",
+				}),
+			).toThrow(/Missing required environment variable\(s\): PORT/);
+		});
 
-      const result = await convexService.query("puzzle:wordsearch:getById", {
-        puzzleId: "p1",
-        userId: "u1",
-      });
-      expect(result).toEqual(puzzle);
-    });
+		test("fails validation when PORT is not a valid number", () => {
+			expect(() =>
+				validateEnv({
+					PORT: "not-a-port",
+					CONVEX_URL: "https://mock.convex.cloud",
+					API_BASE_URL: "http://localhost:3005/v1/api",
+					STATE_SERVICE_URL: "http://localhost:3004",
+				}),
+			).toThrow(/Invalid environment variable PORT/);
+		});
 
-    test("puzzle:wordsearch:getById - returns null if user mismatch", async () => {
-      const puzzle = { id: "p1", userId: "u1" };
-      (convexService as any).mockPuzzles.set("p1", puzzle);
+		test("fails validation when API_BASE_URL is missing", () => {
+			expect(() =>
+				validateEnv({
+					CONVEX_URL: "https://mock.convex.cloud",
+					PORT: "3005",
+					STATE_SERVICE_URL: "http://localhost:3004",
+				}),
+			).toThrow(/Missing required environment variable\(s\): API_BASE_URL/);
+		});
 
-      const result = await convexService.query("puzzle:wordsearch:getById", {
-        puzzleId: "p1",
-        userId: "u2",
-      });
-      expect(result).toBeNull();
-    });
+		test("fails validation when STATE_SERVICE_URL is missing", () => {
+			expect(() =>
+				validateEnv({
+					CONVEX_URL: "https://mock.convex.cloud",
+					PORT: "3005",
+					API_BASE_URL: "http://localhost:3005/v1/api",
+				}),
+			).toThrow(
+				/Missing required environment variable\(s\): STATE_SERVICE_URL/,
+			);
+		});
 
-    test("puzzle:wordsearch:getByUserId - returns active puzzle", async () => {
-      const puzzle = { id: "p1", userId: "u1", completed: false };
-      (convexService as any).mockPuzzles.set("p1", puzzle);
+		test("fails validation when URLs are malformed", () => {
+			expect(() =>
+				validateEnv({
+					CONVEX_URL: "invalid-url",
+					PORT: "3005",
+					API_BASE_URL: "http://localhost:3005/v1/api",
+					STATE_SERVICE_URL: "http://localhost:3004",
+				}),
+			).toThrow(/Invalid environment variable CONVEX_URL/);
+		});
 
-      const result = await convexService.query("puzzle:wordsearch:getByUserId", {
-        userId: "u1",
-      });
-      expect(result).toEqual(puzzle);
-    });
+		test("succeeds when all required environment variables are provided", () => {
+			const config = validateEnv({
+				CONVEX_URL: "https://test.convex.cloud",
+				PORT: "3005",
+				API_BASE_URL: "http://localhost:3005/v1/api",
+				STATE_SERVICE_URL: "http://localhost:3004",
+			});
 
-    test("urlShorter:getByCode - returns short url data", async () => {
-      const data = { shortCode: "abc", url: "http://test.com" };
-      (convexService as any).mockShortUrls.set("abc", data);
+			expect(config.CONVEX_URL).toBe("https://test.convex.cloud");
+			expect(config.PORT).toBe(3005);
+			expect(config.API_BASE_URL).toBe("http://localhost:3005/v1/api");
+			expect(config.STATE_SERVICE_URL).toBe("http://localhost:3004");
+			expect(config.WORDSEARCH_STEP_ID).toBe("step_02_wordsearch");
+		});
+	});
 
-      const result = await convexService.query("urlShorter:getByCode", {
-        shortCode: "abc",
-      });
-      expect(result).toEqual(data);
-    });
+	describe("Convex Client Mapping & Delegation", () => {
+		let mockClient: any;
+		let service: ConvexService;
 
-    test("redirectUrl:get - returns null if not found", async () => {
-      const result = await convexService.query("redirectUrl:get", {
-        type: "non-existent",
-      });
-      expect(result).toBeNull();
-    });
+		beforeEach(() => {
+			mockClient = {
+				query: vi.fn(),
+				mutation: vi.fn(),
+			};
+			service = new ConvexService(mockClient);
+		});
 
-    test("redirectUrl:get - returns cached value", async () => {
-      // Setup mock
-      (convexService as any).mockRedirectUrls.set("test-cache", { url: "http://cached.com" });
-      
-      // First call (cache miss)
-      const result1 = await convexService.query("redirectUrl:get", { type: "test-cache" });
-      expect(result1.url).toBe("http://cached.com");
+		test("correctly maps internal action keys to Convex function paths", () => {
+			expect(service.mapFunctionPath("puzzle:wordsearch:create")).toBe(
+				"puzzles:create",
+			);
+			expect(service.mapFunctionPath("puzzle:wordsearch:getById")).toBe(
+				"puzzles:getById",
+			);
+			expect(service.mapFunctionPath("puzzle:wordsearch:getByUserId")).toBe(
+				"puzzles:getByUserId",
+			);
+			expect(service.mapFunctionPath("puzzle:wordsearch:updateProgress")).toBe(
+				"puzzles:updateProgress",
+			);
+			expect(service.mapFunctionPath("puzzle:wordsearch:reset")).toBe(
+				"puzzles:reset",
+			);
+			expect(service.mapFunctionPath("puzzle:wordsearch:list")).toBe(
+				"puzzles:list",
+			);
+			expect(service.mapFunctionPath("urlShorter:create")).toBe(
+				"urlShortener:create",
+			);
+			expect(service.mapFunctionPath("urlShorter:getByCode")).toBe(
+				"urlShortener:getByCode",
+			);
+			expect(service.mapFunctionPath("redirectUrl:delete")).toBe(
+				"redirectUrls:deleteUrl",
+			);
+			expect(service.mapFunctionPath("serviceMapping:delete")).toBe(
+				"serviceMappings:deleteMapping",
+			);
+		});
 
-      // Update mock directly (cache should still have old value)
-      (convexService as any).mockRedirectUrls.set("test-cache", { url: "http://updated.com" });
-      
-      const result2 = await convexService.query("redirectUrl:get", { type: "test-cache" });
-      expect(result2.url).toBe("http://cached.com"); // Cache hit
-    });
+		test("query delegates to client.query with mapped path", async () => {
+			const expectedData = { id: "p1", userId: "u1", completed: true };
+			mockClient.query.mockResolvedValueOnce(expectedData);
 
-    test("dictionary:get - returns word by id", async () => {
-      (convexService as any).mockDictionary.set("999", {
-        id: "999",
-        word: "jest",
-      });
-      const result = await convexService.query("dictionary:get", { id: "999" });
-      expect(result.word).toBe("jest");
-    });
+			const result = await service.query("puzzle:wordsearch:getById", {
+				puzzleId: "p1",
+			});
 
-    test("redirectUrl:delete - removes redirect url and clears cache", async () => {
-      // Seed
-      await convexService.mutation("redirectUrl:store", { type: "to-delete", url: "http://delete.me" });
-      
-      // Verify exists and is cached
-      const result1 = await convexService.query("redirectUrl:get", { type: "to-delete" });
-      expect(result1.url).toBe("http://delete.me");
-      
-      // Delete
-      await convexService.mutation("redirectUrl:delete", { type: "to-delete" });
-      
-      // Verify gone
-      const result2 = await convexService.query("redirectUrl:get", { type: "to-delete" });
-      expect(result2).toBeNull();
-    });
+			expect(mockClient.query).toHaveBeenCalledWith("puzzles:getById", {
+				puzzleId: "p1",
+			});
+			expect(result).toEqual(expectedData);
+		});
 
-    test("serviceMapping:get - returns mapping if exists", async () => {
-      (convexService as any).mockServiceMappings.set("test-service", { redirectUrlType: "test-type" });
-      const result = await convexService.query("serviceMapping:get", { serviceName: "test-service" });
-      expect(result.redirectUrlType).toBe("test-type");
-    });
-  });
+		test("mutation delegates to client.mutation with mapped path", async () => {
+			const expectedResult = { success: true };
+			mockClient.mutation.mockResolvedValueOnce(expectedResult);
 
-  describe("mutation (Mock Mode)", () => {
-    test("puzzle:wordsearch:create - stores puzzle", async () => {
-      const puzzle = { id: "p2", userId: "u1" };
-      const result = await convexService.mutation(
-        "puzzle:wordsearch:create",
-        puzzle
-      );
-      expect(result.success).toBe(true);
-      expect((convexService as any).mockPuzzles.get("p2")).toEqual(puzzle);
-    });
+			const result = await service.mutation("puzzle:wordsearch:create", {
+				id: "p1",
+				userId: "u1",
+			});
 
-    test("puzzle:wordsearch:updateProgress - updates foundWords and completion", async () => {
-      const puzzle = {
-        id: "p1",
-        words: ["apple"],
-        foundWords: [],
-        completed: false,
-      };
-      (convexService as any).mockPuzzles.set("p1", puzzle);
+			expect(mockClient.mutation).toHaveBeenCalledWith("puzzles:create", {
+				id: "p1",
+				userId: "u1",
+			});
+			expect(result).toEqual(expectedResult);
+		});
 
-      await convexService.mutation("puzzle:wordsearch:updateProgress", {
-        puzzleId: "p1",
-        userId: "u1",
-        word: "apple",
-        foundWords: [{ word: "apple", cells: [] }],
-        allFound: true,
-      });
+		test("re-throws query errors with logged context", async () => {
+			mockClient.query.mockRejectedValueOnce(new Error("Network error"));
 
-      const updated = (convexService as any).mockPuzzles.get("p1");
-      expect(updated.completed).toBe(true);
-      expect(updated.foundWords).toHaveLength(1);
-    });
+			await expect(
+				service.query("puzzle:wordsearch:getById", { puzzleId: "p1" }),
+			).rejects.toThrow("Network error");
+		});
 
-    test("dictionary:add - adds new word with auto-increment id", async () => {
-      const initialSize = (convexService as any).mockDictionary.size;
-      const result = await convexService.mutation("dictionary:add", {
-        word: "newword",
-        question: "?",
-      });
-      expect(result.success).toBe(true);
-      expect((convexService as any).mockDictionary.size).toBe(initialSize + 1);
-      expect(result.word).toBe("newword");
-    });
-  });
+		test("re-throws mutation errors with logged context", async () => {
+			mockClient.mutation.mockRejectedValueOnce(new Error("Database error"));
+
+			await expect(
+				service.mutation("puzzle:wordsearch:create", { id: "p1" }),
+			).rejects.toThrow("Database error");
+		});
+	});
 });
