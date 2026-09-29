@@ -5,28 +5,30 @@ A multi-service Fastify backend for a Wordsearch game with TypeScript, URL short
 ## Features
 
 - **Wordsearch Puzzle Service**: Generates puzzles with words dynamically selected based on a unique secret code. Features backend-driven grid generation for enhanced security.
-- **Security-First Design**: Prevents cheating by obfuscating word data, hiding the secret short URL until completion, and performing all word validations on the server side.
+- **ASCII Art Passcode Decoder**: Retro CRT terminal puzzle (Sector 07) where players inspect alien sprite waves to decode a secret 3-letter passcode sequence.
+- **Anti-Cheat & Lockout Policy**: Enforces strict attempt limits (6 attempts by default). Upon exceeding max attempts, the terminal locks out input and requires completing a designated prerequisite step (Wordsearch) to recalibrate clearance.
+- **Dynamic Multi-Tier Configuration**: Decoupled from hardcoded values. Step definitions, passcodes, lockout policies, and destination redirect URLs dynamically resolve from runtime unlocked payloads, player state projections, Convex database definitions, environment variables, or safety fallbacks.
+- **Security-First Design**: Prevents cheating by obfuscating word data, hiding secret short URLs and passcodes until completion, and performing all validations on the server side.
 - **URL Shortener Service**: Generates unique, 7-letter alphabetic codes with non-repeating letters that redirect to a configurable reward URL.
 - **Dictionary Service**: Manages a repository of 500+ words and tricky questions/clues (riddles and metaphors) for varied difficulty, ensuring coverage for every letter of the alphabet.
 - **Admin API**: Full CRUD capabilities for dictionary entries, type-based redirect URL management, and dynamic service mappings. Includes overviews for active puzzles and generated short URLs.
-- **Convex Integration**: Built to work with [Convex](https://www.convex.dev/), with a robust built-in mock mode for local development. Supports server-side caching for redirect URLs and global listings for administrative oversight.
-- **Integrated Frontend**: Serves a minimalistic home page, the Wordsearch game, and a comprehensive Admin Dashboard. Features a classic "old school" web aesthetic and themed error handling.
+- **Convex Integration**: Connects directly to [Convex](https://www.convex.dev/) cloud backend using `ConvexHttpClient`. Mock mode has been disabled to ensure complete data consistency across services.
+- **Integrated Frontend**: Serves a minimalistic home page, the Wordsearch game, the CRT ASCII Art terminal, and a comprehensive Admin Dashboard. Features a classic retro aesthetic and themed error handling.
 - **Dynamic Service Mapping**: Decouples services from hardcoded redirect URL types by mapping service names to specific redirect configurations in the database.
 - **Mandatory User Identification**: Requires a `userId` parameter for all puzzle-related requests to track progress and ensure unique sessions.
 - **TypeScript & Fastify**: Modern stack for high performance and type safety.
 
 ## Security & Anti-Cheat
 
-To prevent users from finding words by inspecting the browser's source code or network traffic:
-- **Server-Side Generation**: The 12x12 grid and word placements are calculated entirely on the backend.
+To prevent users from finding answers by inspecting the browser's source code or network traffic:
+- **Server-Side Generation**: The 12x12 grid, word placements, and passcode verifications are calculated entirely on the backend.
 - **Dynamic Selection**: Words are selected from the dictionary such that their first letters form the secret short URL code.
 - **Word Obfuscation**: The API response to the client does **not** contain the list of words or the short URL. Instead, it provides a grid of letters and a list of clues.
 - **Opaque IDs**: Each clue is associated with an obfuscated ID rather than the word itself.
-- **Server-Side Validation**: When a user selects a word, the frontend sends the coordinates to the server, which validates the find against the hidden puzzle state.
-- **Secure Completion**: The secret short URL is only revealed via a specialized `/complete` endpoint after all words have been successfully validated.
-- **In-Memory Caching**: Active puzzles are cached on the server for ultra-fast validation and efficient session recovery.
-- **Final State Persistence**: User progress is saved to the database and synchronized across sessions.
-- **Session Persistence**: Progress is automatically restored when a user reloads the page, including struck-through clues and highlighted grid coordinates.
+- **Server-Side Validation**: When a user selects a word or submits a passcode, the server validates the input against the authoritative state.
+- **Attempt Tracking & Lockouts**: Passcode attempts are synchronized with `state-service`. 4 failed attempts trigger a hard security lockout.
+- **Secure Completion**: Secret destination URLs and unlock payloads are only revealed via authenticated completion routines after successful verification.
+- **Final State Persistence**: User progress is saved to Convex and synchronized with the central ARG state engine across sessions.
 
 ## Prerequisites
 
@@ -41,13 +43,26 @@ To prevent users from finding words by inspecting the browser's source code or n
    npm install
    ```
 
-## Configuration
+## Configuration & Environment Variables
 
-The application uses environment variables for configuration. Create a `.env` file in the root directory:
+The application requires strict environment variable configuration. **Mock mode has been completely disabled**; if any mandatory environment variable is missing or malformed, the server fails fast on startup with a descriptive error.
 
-- `CONVEX_URL`: Your Convex deployment URL. If not provided, the application runs in **Mock Mode** using in-memory storage and pre-seeded data.
-- `PORT`: (Optional) The port to run the server on (default: 3000).
-- `API_BASE_URL`: The base URL for the API endpoints, used by the frontend (default: `http://localhost:3000/v1/api`).
+Create a `.env` file in the root directory (see `.env.example`):
+
+### Mandatory Variables
+- `CONVEX_URL`: Your Convex deployment URL (e.g. `https://<deployment>.convex.cloud`).
+- `PORT`: Port on which the server listens (e.g. `3005`).
+- `API_BASE_URL`: The base URL for API endpoints used by the frontend (e.g. `http://localhost:3005/v1/api`).
+- `STATE_SERVICE_URL`: URL of the central ARG `state-service` (e.g. `http://localhost:3004`).
+
+### Optional Variables
+- `ASCII_ART_REDIRECT_URL` / `PUZZLE_REDIRECT_URL`: Custom redirect destination URL upon solving the ASCII art puzzle (falls back to runtime payload / step definition / default).
+- `ASCII_ART_STEP_ID`: ARG step identifier for the ASCII art puzzle (default: `step_07_passcode`).
+- `ASCII_ART_PASSCODE`: Target passcode override (default: `NHW`).
+- `ASCII_ART_MAX_ATTEMPTS`: Maximum failed attempts before security lockout (default: `4`).
+- `ASCII_ART_NEXT_STEP_ID`: Next step unlocked upon completion (default: `step_08_haven_redirect`).
+- `RESET_PREREQUISITE_STEP_ID`: Prerequisite step required to clear a lockout (default: `step_02_wordsearch`).
+- `WORDSEARCH_STEP_ID`: Step identifier for Wordsearch puzzle completion (default: `step_02_wordsearch`).
 
 ## Running the Application
 
@@ -84,11 +99,13 @@ Once the server is running, you can access the interactive Swagger documentation
  
 - `GET /`: Serves the Home page.
 - `GET /wordsearch/puzzle?userId=ID`: Serves the Wordsearch game (requires `userId`).
-- `GET /asciiart/puzzle`: Serves the ASCII Art puzzle (Coming soon).
+- `GET /asciiart/puzzle?userId=ID`: Serves the CRT terminal ASCII Art puzzle (requires `userId`).
 - `GET /git/puzzle`: Explore the Repository puzzle (Coming soon).
 - `GET /v1/api/puzzle/wordSearch?userId=ID`: Generate a new puzzle for the given user.
 - `POST /v1/api/puzzle/wordSearch/validate`: Validate a found word using coordinates.
 - `GET /v1/api/puzzle/wordSearch/complete`: Retrieve the final short URL after solving the puzzle.
+- `GET /v1/api/puzzle/asciiArt?userId=ID`: Retrieve player ASCII art puzzle state, attempt counts, lockout status, and diagram.
+- `POST /v1/api/puzzle/asciiArt/validate`: Validate submitted 3-letter passcode sequence, increment attempt count or trigger security lockout, and complete the ARG step upon match.
 - `GET /v1/api/shortUrl/:shortCode`: Resolve short code and redirect to target URL.
 - `GET /v1/api/dictionary`: List dictionary entries with pagination (`cursor` and `numItems`).
 - `POST /v1/api/dictionary`: Add a new word-question pair.
@@ -112,15 +129,18 @@ The Dictionary API uses cursor-based pagination.
 
 - `src/index.ts`: Entry point for the Fastify server.
 - `src/routes/`: API route definitions.
-- `src/services/`: Core business logic (Puzzle, Dictionary, URL Shortener, Convex).
-- `src/fe/`: Frontend HTML files and templates.
+- `src/services/`: Core business logic (WordSearch, AsciiArt, Dictionary, URL Shortener, Convex).
+- `src/fe/`: Frontend HTML files, stylesheets, and scripts.
+  - `src/fe/ascii-art/asciiart.html`: CRT terminal UI for the ASCII Art passcode decoder.
   - `src/fe/word-search/wordsearch.html`: The frontend Wordsearch game.
+  - `src/fe/assets/css/asciiart.css`: Retro phosphor-green CRT styling and animations.
+  - `src/fe/assets/js/asciiart.js`: Frontend logic for input management, lockout handling, and polling.
   - `src/fe/home.html`: The landing page.
   - `src/fe/error.html`: The generic error page template.
 - `src/tests/`: Vitest test suites.
-- `config/`: Configuration files and seed data (`dictionaryData.json`).
+- `config/`: Configuration files, step definition manifests (`arg_steps_manifest.json`), and seed data (`dictionaryData.json`).
 - `dist/`: Compiled JavaScript output.
 
 ## Development
 
-The project includes a robust mock mode for `ConvexService`. If `CONVEX_URL` is not set, the system will use an internal memory store seeded with 500 words and default configurations, allowing for full functionality without a database connection.
+Mock mode has been completely removed to maintain single-source-of-truth consistency across services. When running the server locally, ensure that all required environment variables (`CONVEX_URL`, `PORT`, `API_BASE_URL`, and `STATE_SERVICE_URL`) are properly configured in `.env`.

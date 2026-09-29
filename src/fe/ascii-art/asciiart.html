@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Echo Archive // Sector 07 Terminal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/assets/css/asciiart.css">
+</head>
+<body>
+
+<div class="crt-screen">
+  <div class="scanlines"></div>
+  <div class="glow-layer"></div>
+
+  <div class="terminal-container">
+    <!-- Terminal Header -->
+    <header class="terminal-header">
+      <div class="status-indicator online"></div>
+      <div class="header-text">
+        <span class="system-title">ECHO RECOVERED ARCHIVE TERMINAL</span>
+        <span class="system-meta">// SECTOR 07: DECODING PASSCODE // RS-025</span>
+      </div>
+      <div class="sys-clock" id="sysClock">00:00:00 UTC</div>
+    </header>
+
+    <!-- Error/Notice Bar -->
+    <div class="alert-banner hidden" id="lockoutBanner">
+      <span class="blink">[CRITICAL ALERT]</span> SECURITY LOCKOUT ENGAGED &mdash; MAX ATTEMPTS (4/4) EXCEEDED
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="terminal-body" id="mainTerminal">
+      <!-- Clue & Context Section -->
+      <section class="log-section">
+        <div class="log-entry">
+          <span class="prompt">&gt;</span> <span class="log-tag">[SOURCE ARCHIVE]</span> Cedric's Research Notes: Space Invaders (2003-01-24)
+        </div>
+        <div class="log-entry quote">
+          <span class="prompt">&gt;</span> <em>"Has anyone noticed any strange characters hidden in the alien's binary layout? - Cedric"</em>
+        </div>
+      </section>
+
+      <!-- ASCII Art Display -->
+      <section class="ascii-viewport">
+        <div class="viewport-header">
+          <span>ALIEN_SPRITE_DIAGRAM.TXT</span>
+          <span class="viewport-mode">DECRYPT_MODE: ACTIVE</span>
+        </div>
+        <pre class="ascii-canvas" id="asciiCanvas">
+  SCORE: 01980          HI-SCORE: 99990          WAVES: 03
+ =========================================================
+
+ WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+ WWWWWW                  WWWWWWWWWWWW                  WW
+ WWWWWWWWWW              WWWWWWWWWW
+
+                     NNNNNNNNNNNNNNNNNNNN
+                 NNNNNNNNNNNNNNNNNNNNNNNNNNNN
+                 NNNNNNNN            NNNNNNNN
+                 NNNNNNNN            NNNNNNNN
+                 NNNNNNNNNNNNNNNNNNNNNNNNNNNN
+                     NNNNNNNN    NNNNNNNN
+                     NNNNNNNN    NNNNNNNN
+
+                             HHHHHHHHHHHH
+                     HHHHHHHHHHHHHHHHHHHHHHHHHHHH
+                     HHHHHHHH            HHHHHHHH
+                     HHHHHHHHHHHHHHHHHHHHHHHHHHHH
+ =========================================================
+ LIVES: [♥] [♥] [ ] (2 LEFT)                    CREDITS: 00
+        </pre>
+      </section>
+
+      <!-- Interactive Passcode Input Section -->
+      <section class="decoder-control" id="decoderControl">
+        <div class="security-status">
+          <span class="status-label">SECURITY CLEARANCE ATTEMPTS:</span>
+          <div class="attempt-dots" id="attemptDots">
+            <span class="dot" data-attempt="1"></span>
+            <span class="dot" data-attempt="2"></span>
+            <span class="dot" data-attempt="3"></span>
+            <span class="dot" data-attempt="4"></span>
+          </div>
+          <span class="attempt-counter" id="attemptCounter">0 / 4 ATTEMPTS</span>
+        </div>
+
+        <form class="passcode-form" id="passcodeForm" autocomplete="off">
+          <label class="input-instructions">
+            &gt; ENTER 3-LETTER ALIEN DECRYPTION SEQUENCE:
+          </label>
+          <div class="letter-inputs">
+            <input type="text" maxlength="1" class="letter-box" id="letter1" />
+            <span class="hyphen">&ndash;</span>
+            <input type="text" maxlength="1" class="letter-box" id="letter2" />
+            <span class="hyphen">&ndash;</span>
+            <input type="text" maxlength="1" class="letter-box" id="letter3" />
+          </div>
+
+          <div class="action-buttons">
+            <button type="submit" class="btn btn-verify" id="verifyBtn">
+              [ VERIFY SEQUENCE ]
+            </button>
+            <button type="button" class="btn btn-secondary" id="clearBtn">
+              [ CLEAR ]
+            </button>
+          </div>
+        </form>
+
+        <div class="feedback-box" id="feedbackBox">
+          <span class="prompt">&gt;</span> <span id="feedbackMessage">Awaiting operator input...</span>
+        </div>
+      </section>
+
+      <!-- Lockout Overlay Section -->
+      <section class="lockout-screen hidden" id="lockoutScreen">
+        <div class="lockout-box">
+          <div class="lockout-icon">&#9888;</div>
+          <h2 class="lockout-title">SECURITY LOCKOUT TRIGGERED</h2>
+          <p class="lockout-msg">
+            Maximum passcode attempts exceeded (<span id="lockoutAttemptsDisplay">4/4</span>). Terminal input has been suspended by system security protocols.
+          </p>
+          <p class="lockout-submsg">
+            To clear the lockout condition and reset attempts, you must recalibrate security clearance by re-completing <strong id="resetStepTitle">Step 2: Recovered Notebook Wordsearch</strong>.
+          </p>
+          <a href="#" class="btn btn-danger" id="recalibrateBtn">
+            [ &#10227; RECALIBRATE CLEARANCE ]
+          </a>
+        </div>
+      </section>
+
+      <!-- Success Screen -->
+      <section class="success-screen hidden" id="successScreen">
+        <div class="success-box">
+          <div class="success-icon">&#10003;</div>
+          <h2 class="success-title">ACCESS GRANTED // PASSCODE ACCEPTED</h2>
+          <div class="success-details">
+            <p>&gt; SEQUENCE <strong id="verifiedSequence">[ VERIFIED ]</strong></p>
+            <p id="stepUnlockNotice">&gt; SECTOR DECRYPTION COMPLETE // NEXT SECTOR UNLOCKED</p>
+            <p>&gt; DECRYPTED DESTINATION: <strong id="destinationTitle">Decrypted Destination</strong></p>
+          </div>
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-proceed" id="proceedBtn">
+            [ PROCEED TO DESTINATION &rarr; ]
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- Terminal Footer -->
+    <footer class="terminal-footer">
+      <span>SYSTEM: ARCHIVE_V2.6 // PROTOCOL: PASSCODE_CHECK</span>
+      <span id="playerUserIdTag">USER: GUEST</span>
+    </footer>
+  </div>
+</div>
+
+<script>window.API_BASE_URL = "{{API_BASE_URL}}"; window.USER_ID = "{{USER_ID}}";</script>
+<script src="/assets/js/asciiart.js"></script>
+
+</body>
+</html>

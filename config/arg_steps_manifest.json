@@ -1,0 +1,228 @@
+[
+	{
+		"id": "step_01_blog",
+		"order": 1,
+		"type": "READ",
+		"title": "BlogNET Initial Notebook Scan",
+		"isUnordered": false,
+		"prerequisites": [],
+		"prerequisiteMode": "NONE",
+		"unlockPayload": {
+			"notebookPageDate": "2026-03-01",
+			"hint": "Examine the grid lines on the scanned notebook page."
+		}
+	},
+	{
+		"id": "step_02_wordsearch",
+		"order": 2,
+		"type": "PUZZLE",
+		"title": "Recovered Notebook Wordsearch",
+		"isUnordered": false,
+		"prerequisites": ["step_01_blog"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"puzzleType": "wordsearch",
+			"gridTheme": "tetris_blocks"
+		}
+	},
+	{
+		"id": "step_03_website",
+		"order": 3,
+		"type": "EXTERNAL_LINK",
+		"title": "Game Website Download Hub",
+		"isUnordered": false,
+		"prerequisites": ["step_02_wordsearch"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"url": "/game-hub"
+		}
+	},
+	{
+		"id": "step_04_level1",
+		"order": 4,
+		"type": "GAME_LEVEL",
+		"title": "Godot Level 1 - Grassland Exploration",
+		"isUnordered": false,
+		"prerequisites": ["step_03_website"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"godotScene": "res://world/base_grass_level_1.tscn"
+		}
+	},
+	{
+		"id": "step_05_ascii_hints",
+		"order": 5,
+		"type": "READ",
+		"title": "Monolith ASCII Coordinate Discovery",
+		"isUnordered": false,
+		"prerequisites": ["step_04_level1"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"offsets": "2003-05-02_map_offsets"
+		}
+	},
+	{
+		"id": "step_06_ascii_post",
+		"order": 6,
+		"type": "READ",
+		"title": "BlogNET Missing Files ASCII Art",
+		"isUnordered": false,
+		"prerequisites": ["step_05_ascii_hints"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"missingFile": "Screenshot_024.png"
+		}
+	},
+	{
+		"id": "step_07_passcode",
+		"order": 7,
+		"type": "PASSCODE",
+		"title": "BlogNET Passcode Input Block",
+		"isUnordered": false,
+		"prerequisites": ["step_06_ascii_post"],
+		"prerequisiteMode": "ALL",
+		"lockoutPolicy": {
+			"maxAttempts": 4,
+			"resetPrerequisiteStepId": "step_02_wordsearch"
+		},
+		"unlockPayload": {
+			"passcode": "NHW"
+		}
+	},
+	{
+		"id": "step_08_haven_redirect",
+		"order": 8,
+		"type": "EXTERNAL_LINK",
+		"title": "Unlisted Haven Lagoon Webpage",
+		"isUnordered": false,
+		"prerequisites": ["step_07_passcode"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"url": "https://echoarchive.org/unlisted_lagoon.html"
+		}
+	},
+	{
+		"id": "step_09_level2",
+		"order": 9,
+		"type": "GAME_LEVEL",
+		"title": "Godot Level 2 - Haven Map 03",
+		"isUnordered": false,
+		"prerequisites": ["step_08_haven_redirect"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"godotScene": "res://world/base_grass_level_2.tscn"
+		}
+	},
+	{
+		"id": "step_10_chat_logs",
+		"order": 10,
+		"type": "READ",
+		"title": "Level 2 Chest Log Discovery",
+		"isUnordered": false,
+		"prerequisites": ["step_09_level2"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"logFile": "cedric_haven_chat_2003.log"
+		}
+	},
+	{
+		"id": "step_11_level3",
+		"order": 11,
+		"type": "GAME_LEVEL",
+		"title": "Godot Level 3 - Generator Breakers",
+		"isUnordered": false,
+		"prerequisites": ["step_10_chat_logs"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"godotScene": "res://world/base_grass_level_3.tscn"
+		}
+	},
+	{
+		"id": "step_12_base64",
+		"order": 12,
+		"type": "READ",
+		"title": "Mainframe Base64 String Output",
+		"isUnordered": false,
+		"prerequisites": ["step_11_level3"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"base64String": "aHR0cHM6Ly95b3V0dS5iZS9lY2hvX2FyY2hpdmU="
+		}
+	},
+	{
+		"id": "step_13_youtube",
+		"order": 13,
+		"type": "EXTERNAL_LINK",
+		"title": "Decrypted YouTube Video Link",
+		"isUnordered": false,
+		"prerequisites": ["step_12_base64"],
+		"prerequisiteMode": "ALL"
+	},
+	{
+		"id": "step_14_git_repo",
+		"order": 14,
+		"type": "EXTERNAL_LINK",
+		"title": "GitHub Investigation Repository",
+		"isUnordered": false,
+		"prerequisites": ["step_13_youtube"],
+		"prerequisiteMode": "ALL"
+	},
+	{
+		"id": "step_15_git_commit",
+		"order": 15,
+		"type": "READ",
+		"title": "Git Commit Clue Acquisition",
+		"isUnordered": false,
+		"prerequisites": ["step_14_git_repo"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"commitCode": "echo_part2_0392"
+		}
+	},
+	{
+		"id": "step_16_level4",
+		"order": 16,
+		"type": "GAME_LEVEL",
+		"title": "Godot Level 4 - Preparing Final Route",
+		"isUnordered": false,
+		"prerequisites": ["step_15_git_commit"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"godotScene": "res://world/base_grass_level_4.tscn"
+		}
+	},
+	{
+		"id": "step_17_portal",
+		"order": 17,
+		"type": "GAME_LEVEL",
+		"title": "Level 4 Sealing Portal Trigger",
+		"isUnordered": false,
+		"prerequisites": ["step_16_level4"],
+		"prerequisiteMode": "ALL"
+	},
+	{
+		"id": "step_18_combine_codes",
+		"order": 18,
+		"type": "PASSCODE",
+		"title": "Combined Passcode Console",
+		"isUnordered": false,
+		"prerequisites": ["step_07_passcode", "step_15_git_commit"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"combinedCode": "NHW_echo_part2_0392"
+		}
+	},
+	{
+		"id": "step_19_onion_qr",
+		"order": 19,
+		"type": "READ",
+		"title": "QR Code & .onion Archive Access",
+		"isUnordered": false,
+		"prerequisites": ["step_18_combine_codes"],
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"onionUrl": "http://echoarchive5j7x2k.onion",
+			"qrCodeId": "qr_final_completion"
+		}
+	}
+]

@@ -1,394 +1,457 @@
+import { env } from "../../config/env.js";
 import { BaseApiService } from "../BaseApiService.js";
 import convexService from "../convex/ConvexService.js";
 import urlShortenerService from "../url-shortner/UrlShortenerService.js";
 import dictionaryService from "./DictionaryService.js";
 
 interface Clue {
-  word: string;
-  question: string;
+	word: string;
+	question: string;
 }
 
 interface FoundWord {
-  word: string;
-  cells: { x: number; y: number }[];
+	word: string;
+	cells: { x: number; y: number }[];
 }
 
 interface PuzzleData {
-  id: string;
-  words: string[];
-  clues: Clue[];
-  userId: string;
-  shortUrl: string;
-  grid: string[][];
-  size: number;
-  foundWords: (string | FoundWord)[];
-  completed: boolean;
+	id: string;
+	words: string[];
+	clues: Clue[];
+	userId: string;
+	shortUrl: string;
+	grid: string[][];
+	size: number;
+	foundWords: (string | FoundWord)[];
+	completed: boolean;
 }
 
 class WordSearchService extends BaseApiService {
-  private puzzleCache = new Map<string, PuzzleData>();
-  private userPuzzleCache = new Map<string, PuzzleData>();
+	private puzzleCache = new Map<string, PuzzleData>();
+	private userPuzzleCache = new Map<string, PuzzleData>();
 
-  constructor() {
-    super();
-  }
+	constructor() {
+		super();
+	}
 
-  clearCache() {
-    this.puzzleCache.clear();
-    this.userPuzzleCache.clear();
-  }
+	clearCache() {
+		this.puzzleCache.clear();
+		this.userPuzzleCache.clear();
+	}
 
-  async generatePuzzle(userId: string) {
-    let puzzleData: PuzzleData | null = this.userPuzzleCache.get(userId) || null;
+	async resetPuzzleForUser(userId: string): Promise<void> {
+		if (!userId || userId.trim() === "") return;
+		const cleanUserId = userId.trim();
 
-    if (!puzzleData) {
-      const existingPuzzle = await convexService.query(
-        "puzzle:wordsearch:getByUserId",
-        { userId }
-      );
+		this.userPuzzleCache.delete(cleanUserId);
 
-      if (existingPuzzle) {
-        console.log(`Using existing puzzle for user ${userId}: ${existingPuzzle.id}`);
-        puzzleData = existingPuzzle;
-      }
-    }
+		for (const [id, puzzle] of this.puzzleCache.entries()) {
+			if (puzzle.userId === cleanUserId) {
+				this.puzzleCache.delete(id);
+			}
+		}
 
-    if (puzzleData) {
-      this.puzzleCache.set(puzzleData.id, puzzleData);
-      this.userPuzzleCache.set(userId, puzzleData);
-    } else {
-      const mapping = await convexService.query("serviceMapping:get", { serviceName: "word-search" });
-      const redirectType = mapping?.redirectUrlType || "puzzle-wordsearch";
-      
-      const shortUrl = await urlShortenerService.generateShortUrl(null, userId, redirectType);
-      const dictionaryEntries = await dictionaryService.getWordsByStartingLetters(
-        shortUrl
-      );
-      const selectedWords = dictionaryEntries.map((entry: any) => entry.word);
-      const clues = dictionaryEntries.map((entry: any) => ({
-        word: entry.word,
-        question: entry.question,
-      }));
+		try {
+			await convexService.mutation("puzzle:wordsearch:reset", {
+				userId: cleanUserId,
+			});
+		} catch (e) {
+			console.warn("[WordSearchService] Failed to reset puzzle in Convex:", e);
+		}
+	}
 
-      const { grid, size } = this._createGrid(selectedWords);
+	async isPuzzleCompletedForUser(userId: string): Promise<boolean> {
+		if (!userId || userId.trim() === "") {
+			return false;
+		}
+		const cached = this.userPuzzleCache.get(userId.trim());
+		if (cached?.completed) {
+			return true;
+		}
+		try {
+			const existingPuzzle = await convexService.query(
+				"puzzle:wordsearch:getByUserId",
+				{ userId: userId.trim() },
+			);
+			if (existingPuzzle?.completed) {
+				return true;
+			}
+		} catch {
+			// ignore
+		}
+		return false;
+	}
 
-      puzzleData = {
-        id: `puzzle_${Date.now()}`,
-        words: selectedWords,
-        clues: clues,
-        userId: userId,
-        shortUrl: shortUrl,
-        grid: grid,
-        size: size,
-        foundWords: [],
-        completed: false,
-      };
+	async generatePuzzle(userId: string) {
+		const cleanUserId = (userId || "guest").trim();
+		let puzzleData: PuzzleData | null =
+			this.userPuzzleCache.get(cleanUserId) || null;
 
-      this.puzzleCache.set(puzzleData.id, puzzleData);
-      this.userPuzzleCache.set(userId, puzzleData);
+		if (!puzzleData) {
+			const existingPuzzle = await convexService.query(
+				"puzzle:wordsearch:getByUserId",
+				{ userId: cleanUserId },
+			);
 
-      try {
-        await convexService.mutation("puzzle:wordsearch:create", puzzleData);
-      } catch (e) {
-        console.error("Failed to store puzzle in Convex", e);
-      }
-    }
+			if (existingPuzzle) {
+				console.log(
+					`Using existing puzzle for user ${cleanUserId}: ${existingPuzzle.id}`,
+				);
+				puzzleData = existingPuzzle;
+			}
+		}
 
-    const responseData = {
-      id: puzzleData!.id,
-      clues: puzzleData!.clues.map((c) => ({
-        question: c.question,
-        length: c.word.length,
-        id: Buffer.from(c.word.toLowerCase())
-          .toString("base64")
-          .replace(/=/g, ""),
-      })),
-      userId: puzzleData!.userId,
-      grid: puzzleData!.grid,
-      size: puzzleData!.size,
-      completed: puzzleData!.completed,
-      shortUrl: puzzleData!.shortUrl,
-      foundWords: puzzleData!.foundWords.map((w) => {
-        const wordString = typeof w === "string" ? w : w.word;
-        return {
-          id: Buffer.from(wordString.toLowerCase())
-            .toString("base64")
-            .replace(/=/g, ""),
-          firstLetter: wordString[0].toUpperCase(),
-          cells: typeof w === "string" ? [] : w.cells,
-        };
-      }),
-    };
+		if (puzzleData) {
+			this.puzzleCache.set(puzzleData.id, puzzleData);
+			this.userPuzzleCache.set(cleanUserId, puzzleData);
+		} else {
+			const mapping = await convexService.query("serviceMapping:get", {
+				serviceName: "word-search",
+			});
+			const redirectType = mapping?.redirectUrlType || "puzzle-wordsearch";
 
-    return responseData;
-  }
-  
-  async listPuzzles(filter: string = "ALL", numItems: number = 10, cursor?: string) {
-    try {
-      const result = await convexService.query("puzzle:wordsearch:list", {
-        filter,
-        numItems,
-        cursor,
-      });
-      return result;
-    } catch (error) {
-      console.error("Error listing puzzles:", error);
-      throw error;
-    }
-  }
+			const shortUrl = await urlShortenerService.generateShortUrl(
+				null,
+				cleanUserId,
+				redirectType,
+			);
+			const dictionaryEntries =
+				await dictionaryService.getWordsByStartingLetters(shortUrl);
+			const selectedWords = dictionaryEntries.map((entry: any) => entry.word);
+			const clues = dictionaryEntries.map((entry: any) => ({
+				word: entry.word,
+				question: entry.question,
+			}));
 
-  private _createGrid(words: string[]) {
-    const size = Math.max(
-      Math.ceil(Math.sqrt(words.reduce((s, w) => s + w.length, 0) * 1.5)),
-      Math.max(...words.map((w) => w.length)) + 2,
-      12
-    );
+			const { grid, size } = this._createGrid(selectedWords);
 
-    const directions = [
-      [1, 0],
-      [0, 1],
-      [1, 1],
-      [-1, 0],
-      [0, -1],
-      [-1, -1],
-      [1, -1],
-      [-1, 1],
-    ];
+			puzzleData = {
+				id: `puzzle_${Date.now()}`,
+				words: selectedWords,
+				clues: clues,
+				userId: cleanUserId,
+				shortUrl: shortUrl,
+				grid: grid,
+				size: size,
+				foundWords: [],
+				completed: false,
+			};
 
-    let grid: string[][] | undefined;
-    let allPlaced = false;
-    let gridAttempts = 0;
+			this.puzzleCache.set(puzzleData.id, puzzleData);
+			this.userPuzzleCache.set(cleanUserId, puzzleData);
 
-    while (!allPlaced && gridAttempts < 50) {
-      grid = Array.from({ length: size }, () => Array(size).fill(""));
-      allPlaced = true;
-      const sortedWords = [...words].sort((a, b) => b.length - a.length);
+			try {
+				await convexService.mutation("puzzle:wordsearch:create", puzzleData);
+			} catch (e) {
+				console.error("Failed to store puzzle in Convex", e);
+			}
+		}
 
-      for (const word of sortedWords) {
-        let placed = false;
-        let wordAttempts = 0;
-        while (!placed && wordAttempts < 200) {
-          const dir =
-            directions[Math.floor(Math.random() * directions.length)];
-          const dx = dir[0];
-          const dy = dir[1];
-          const x = Math.floor(Math.random() * size);
-          const y = Math.floor(Math.random() * size);
+		const responseData = {
+			id: puzzleData!.id,
+			clues: puzzleData!.clues.map((c) => ({
+				question: c.question,
+				length: c.word.length,
+				id: Buffer.from(c.word.toLowerCase())
+					.toString("base64")
+					.replace(/=/g, ""),
+			})),
+			userId: puzzleData!.userId,
+			grid: puzzleData!.grid,
+			size: puzzleData!.size,
+			completed: puzzleData!.completed,
+			shortUrl: puzzleData!.shortUrl,
+			foundWords: puzzleData!.foundWords.map((w) => {
+				const wordString = typeof w === "string" ? w : w.word;
+				return {
+					id: Buffer.from(wordString.toLowerCase())
+						.toString("base64")
+						.replace(/=/g, ""),
+					firstLetter: wordString[0].toUpperCase(),
+					cells: typeof w === "string" ? [] : w.cells,
+				};
+			}),
+		};
 
-          if (this._canPlace(grid, size, word, x, y, dx, dy)) {
-            for (let i = 0; i < word.length; i++) {
-              grid[y + i * dy][x + i * dx] = word[i].toLowerCase();
-            }
-            placed = true;
-          }
-          wordAttempts++;
-        }
+		return responseData;
+	}
 
-        if (!placed) {
-          allPlaced = false;
-          break;
-        }
-      }
-      gridAttempts++;
-    }
+	async listPuzzles(
+		filter: string = "ALL",
+		numItems: number = 10,
+		cursor?: string,
+	) {
+		try {
+			const result = await convexService.query("puzzle:wordsearch:list", {
+				filter,
+				numItems,
+				cursor,
+			});
+			return result;
+		} catch (error) {
+			console.error("Error listing puzzles:", error);
+			throw error;
+		}
+	}
 
-    const letters = "abcdefghijklmnopqrstuvwxyz";
-    if (grid) {
-      for (let y = 0; y < size; y++) {
-        for (let x = 0; x < size; x++) {
-          if (!grid[y][x]) {
-            grid[y][x] = letters[Math.floor(Math.random() * 26)];
-          }
-        }
-      }
-    } else {
-      grid = Array.from({ length: size }, () =>
-        Array.from({ length: size }, () =>
-          letters[Math.floor(Math.random() * 26)]
-        )
-      );
-    }
+	private _createGrid(words: string[]) {
+		const size = Math.max(
+			Math.ceil(Math.sqrt(words.reduce((s, w) => s + w.length, 0) * 1.5)),
+			Math.max(...words.map((w) => w.length)) + 2,
+			12,
+		);
 
-    return { grid, size };
-  }
+		const directions = [
+			[1, 0],
+			[0, 1],
+			[1, 1],
+			[-1, 0],
+			[0, -1],
+			[-1, -1],
+			[1, -1],
+			[-1, 1],
+		];
 
-  private _canPlace(
-    grid: string[][],
-    size: number,
-    word: string,
-    x: number,
-    y: number,
-    dx: number,
-    dy: number
-  ) {
-    for (let i = 0; i < word.length; i++) {
-      let nx = x + i * dx;
-      let ny = y + i * dy;
-      if (nx < 0 || ny < 0 || nx >= size || ny >= size) return false;
-      if (grid[ny][nx] && grid[ny][nx] !== word[i].toLowerCase()) return false;
-    }
-    return true;
-  }
+		let grid: string[][] | undefined;
+		let allPlaced = false;
+		let gridAttempts = 0;
 
-  async validateWord(
-    puzzleId: string,
-    word: string,
-    userId: string,
-    cells: { x: number; y: number }[] = []
-  ) {
-    try {
-      let puzzle = this.puzzleCache.get(puzzleId);
+		while (!allPlaced && gridAttempts < 50) {
+			grid = Array.from({ length: size }, () => Array(size).fill(""));
+			allPlaced = true;
+			const sortedWords = [...words].sort((a, b) => b.length - a.length);
 
-      if (!puzzle) {
-        puzzle = await convexService.query("puzzle:wordsearch:getById", {
-          puzzleId,
-          userId,
-        });
+			for (const word of sortedWords) {
+				let placed = false;
+				let wordAttempts = 0;
+				while (!placed && wordAttempts < 200) {
+					const dir = directions[Math.floor(Math.random() * directions.length)];
+					const dx = dir[0];
+					const dy = dir[1];
+					const x = Math.floor(Math.random() * size);
+					const y = Math.floor(Math.random() * size);
 
-        if (puzzle) {
-          puzzle!.foundWords = puzzle!.foundWords || [];
-          this.puzzleCache.set(puzzleId, puzzle!);
-        }
-      }
+					if (this._canPlace(grid, size, word, x, y, dx, dy)) {
+						for (let i = 0; i < word.length; i++) {
+							grid[y + i * dy][x + i * dx] = word[i].toLowerCase();
+						}
+						placed = true;
+					}
+					wordAttempts++;
+				}
 
-      if (!puzzle) {
-        return { success: false, message: "Puzzle not found" };
-      }
+				if (!placed) {
+					allPlaced = false;
+					break;
+				}
+			}
+			gridAttempts++;
+		}
 
-      if (puzzle.userId !== userId) {
-        console.log(
-          `Access denied for puzzle ${puzzleId}. Puzzle user: ${puzzle.userId}, Request user: ${userId}`
-        );
-        return { success: false, message: "Access denied" };
-      }
+		const letters = "abcdefghijklmnopqrstuvwxyz";
+		if (grid) {
+			for (let y = 0; y < size; y++) {
+				for (let x = 0; x < size; x++) {
+					if (!grid[y][x]) {
+						grid[y][x] = letters[Math.floor(Math.random() * 26)];
+					}
+				}
+			}
+		} else {
+			grid = Array.from({ length: size }, () =>
+				Array.from(
+					{ length: size },
+					() => letters[Math.floor(Math.random() * 26)],
+				),
+			);
+		}
 
-      const normalizedWord = word.toLowerCase();
-      const reversedWord = normalizedWord.split("").reverse().join("");
-      const strippedWord = normalizedWord.replace(/[^a-z0-9]/g, "");
-      const strippedReversed = reversedWord.replace(/[^a-z0-9]/g, "");
+		return { grid, size };
+	}
 
-      const matchForward = puzzle.words.find((w) => {
-        const nw = w.toLowerCase();
-        return (
-          nw === normalizedWord || nw.replace(/[^a-z0-9]/g, "") === strippedWord
-        );
-      });
+	private _canPlace(
+		grid: string[][],
+		size: number,
+		word: string,
+		x: number,
+		y: number,
+		dx: number,
+		dy: number,
+	) {
+		for (let i = 0; i < word.length; i++) {
+			const nx = x + i * dx;
+			const ny = y + i * dy;
+			if (nx < 0 || ny < 0 || nx >= size || ny >= size) return false;
+			if (grid[ny][nx] && grid[ny][nx] !== word[i].toLowerCase()) return false;
+		}
+		return true;
+	}
 
-      const matchReverse = !matchForward
-        ? puzzle.words.find((w) => {
-            const nw = w.toLowerCase();
-            return (
-              nw === reversedWord ||
-              nw.replace(/[^a-z0-9]/g, "") === strippedReversed
-            );
-          })
-        : null;
+	async validateWord(
+		puzzleId: string,
+		word: string,
+		userId: string,
+		cells: { x: number; y: number }[] = [],
+	) {
+		try {
+			let puzzle = this.puzzleCache.get(puzzleId);
 
-      if (!matchForward && !matchReverse) {
-        return { success: false, message: "Invalid word for this puzzle" };
-      }
+			if (!puzzle) {
+				puzzle = await convexService.query("puzzle:wordsearch:getById", {
+					puzzleId,
+					userId,
+				});
 
-      const actualWord = (matchForward || matchReverse)!.toLowerCase();
-      const usedCells = matchForward ? cells : cells.slice().reverse();
+				if (puzzle) {
+					puzzle!.foundWords = puzzle!.foundWords || [];
+					this.puzzleCache.set(puzzleId, puzzle!);
+				}
+			}
 
-      const alreadyFound = puzzle.foundWords.some(
-        (w) => (typeof w === "string" ? w : w.word) === actualWord
-      );
+			if (!puzzle) {
+				return { success: false, message: "Puzzle not found" };
+			}
 
-      if (!alreadyFound) {
-        puzzle.foundWords.push({
-          word: actualWord,
-          cells: usedCells,
-        });
-      } else {
-        const existingEntry = puzzle.foundWords.find(
-          (w) => (typeof w === "string" ? w : w.word) === actualWord
-        );
-        if (
-          typeof existingEntry === "object" &&
-          (!existingEntry.cells || existingEntry.cells.length === 0)
-        ) {
-          existingEntry.cells = usedCells;
-        }
-      }
+			if (puzzle.userId !== userId) {
+				console.log(
+					`Access denied for puzzle ${puzzleId}. Puzzle user: ${puzzle.userId}, Request user: ${userId}`,
+				);
+				return { success: false, message: "Access denied" };
+			}
 
-      const allFound = puzzle.words.every((w) =>
-        puzzle!.foundWords.some(
-          (fw) => (typeof fw === "string" ? fw : fw.word) === w.toLowerCase()
-        )
-      );
+			const normalizedWord = word.toLowerCase();
+			const reversedWord = normalizedWord.split("").reverse().join("");
+			const strippedWord = normalizedWord.replace(/[^a-z0-9]/g, "");
+			const strippedReversed = reversedWord.replace(/[^a-z0-9]/g, "");
 
-      if (allFound) {
-        puzzle.completed = true;
-        const STATE_SERVICE_URL =
-          process.env.STATE_SERVICE_URL || "http://localhost:3004";
-        fetch(`${STATE_SERVICE_URL}/state-api/player/step/complete`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId,
-            stepId: "step_02_wordsearch",
-            customData: { shortUrl: puzzle.shortUrl },
-          }),
-        }).catch((err) =>
-          console.warn("Failed to notify state-service on allFound:", err)
-        );
-      }
+			const matchForward = puzzle.words.find((w) => {
+				const nw = w.toLowerCase();
+				return (
+					nw === normalizedWord || nw.replace(/[^a-z0-9]/g, "") === strippedWord
+				);
+			});
 
-      this.puzzleCache.set(puzzleId, puzzle);
-      this.userPuzzleCache.set(userId, puzzle);
+			const matchReverse = !matchForward
+				? puzzle.words.find((w) => {
+						const nw = w.toLowerCase();
+						return (
+							nw === reversedWord ||
+							nw.replace(/[^a-z0-9]/g, "") === strippedReversed
+						);
+					})
+				: null;
 
-      try {
-        await convexService.mutation("puzzle:wordsearch:updateProgress", {
-          puzzleId,
-          word: actualWord,
-          userId,
-          allFound,
-          foundWords: puzzle.foundWords,
-        });
-      } catch (dbError) {
-        console.error("Failed to sync word progress to DB", dbError);
-      }
+			if (!matchForward && !matchReverse) {
+				return { success: false, message: "Invalid word for this puzzle" };
+			}
 
-      return {
-        success: true,
-        word: actualWord,
-        cells: usedCells,
-      };
-    } catch (e) {
-      console.error("Failed to validate word", e);
-      return { success: false, message: "Validation service error" };
-    }
-  }
+			const actualWord = (matchForward || matchReverse)!.toLowerCase();
+			const usedCells = matchForward ? cells : cells.slice().reverse();
 
-  async getPuzzleCompletionData(puzzleId: string, userId: string) {
-    try {
-      let puzzle = this.puzzleCache.get(puzzleId);
+			const alreadyFound = puzzle.foundWords.some(
+				(w) => (typeof w === "string" ? w : w.word) === actualWord,
+			);
 
-      if (!puzzle) {
-        puzzle = await convexService.query("puzzle:wordsearch:getById", {
-          puzzleId,
-          userId,
-        });
-      }
+			if (!alreadyFound) {
+				puzzle.foundWords.push({
+					word: actualWord,
+					cells: usedCells,
+				});
+			} else {
+				const existingEntry = puzzle.foundWords.find(
+					(w) => (typeof w === "string" ? w : w.word) === actualWord,
+				);
+				if (
+					typeof existingEntry === "object" &&
+					(!existingEntry.cells || existingEntry.cells.length === 0)
+				) {
+					existingEntry.cells = usedCells;
+				}
+			}
 
-      if (!puzzle) return null;
+			const allFound = puzzle.words.every((w) =>
+				puzzle!.foundWords.some(
+					(fw) => (typeof fw === "string" ? fw : fw.word) === w.toLowerCase(),
+				),
+			);
 
-      if (puzzle.userId !== userId) {
-        console.log(
-          `Access denied for puzzle completion ${puzzleId}. Puzzle user: ${puzzle.userId}, Request user: ${userId}`
-        );
-        return null;
-      }
+			if (allFound) {
+				puzzle.completed = true;
+				try {
+					const asciiArtModule = await import(
+						"../ascii-art/AsciiArtService.js"
+					);
+					asciiArtModule.default.setWordsearchCompleted(userId, true);
+				} catch {
+					// ignore
+				}
+				fetch(`${env.STATE_SERVICE_URL}/state-api/player/step/complete`, {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						userId,
+						stepId: env.WORDSEARCH_STEP_ID,
+						customData: { shortUrl: puzzle.shortUrl },
+					}),
+				}).catch((err) =>
+					console.warn("Failed to notify state-service on allFound:", err),
+				);
+			}
 
-      return {
-        shortUrl: puzzle.shortUrl,
-      };
-    } catch (e) {
-      console.error("Failed to get puzzle completion data", e);
-      return null;
-    }
-  }
+			this.puzzleCache.set(puzzleId, puzzle);
+			this.userPuzzleCache.set(userId, puzzle);
+
+			try {
+				await convexService.mutation("puzzle:wordsearch:updateProgress", {
+					puzzleId,
+					word: actualWord,
+					userId,
+					allFound,
+					foundWords: puzzle.foundWords,
+				});
+			} catch (dbError) {
+				console.error("Failed to sync word progress to DB", dbError);
+			}
+
+			return {
+				success: true,
+				word: actualWord,
+				cells: usedCells,
+			};
+		} catch (e) {
+			console.error("Failed to validate word", e);
+			return { success: false, message: "Validation service error" };
+		}
+	}
+
+	async getPuzzleCompletionData(puzzleId: string, userId: string) {
+		try {
+			let puzzle = this.puzzleCache.get(puzzleId);
+
+			if (!puzzle) {
+				puzzle = await convexService.query("puzzle:wordsearch:getById", {
+					puzzleId,
+					userId,
+				});
+			}
+
+			if (!puzzle) return null;
+
+			if (puzzle.userId !== userId) {
+				console.log(
+					`Access denied for puzzle completion ${puzzleId}. Puzzle user: ${puzzle.userId}, Request user: ${userId}`,
+				);
+				return null;
+			}
+
+			return {
+				shortUrl: puzzle.shortUrl,
+			};
+		} catch (e) {
+			console.error("Failed to get puzzle completion data", e);
+			return null;
+		}
+	}
 }
 
 export default new WordSearchService();
