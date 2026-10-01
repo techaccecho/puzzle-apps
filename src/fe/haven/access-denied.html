@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - ACCESS RESTRICTED // UNLISTED NODE</title>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 40px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            border: 2px solid #ff3333;
+            background: rgba(255, 51, 51, 0.04);
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(255, 51, 51, 0.2);
+            max-width: 640px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #ff3333;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+            letter-spacing: 2px;
+            color: #ff3333;
+        }
+        .warning {
+            color: #ff3333;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: blink 1.5s infinite;
+            font-size: 1.05em;
+            letter-spacing: 1px;
+        }
+        .ascii-banner {
+            background: #02050a;
+            border: 1px dashed #ff3333;
+            color: #ff3333;
+            padding: 15px;
+            font-size: 0.95rem;
+            line-height: 1.25;
+            font-weight: bold;
+            text-align: center;
+            margin: 15px auto 20px auto;
+            overflow-x: auto;
+        }
+        .log-section {
+            background: #02050a;
+            border: 1px dashed #3a4768;
+            padding: 20px;
+            word-wrap: break-word;
+            margin: 20px 0;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .quote {
+            color: #7b9cd6;
+            font-style: italic;
+            margin-top: 10px;
+        }
+        .status {
+            margin-top: 20px;
+            border-top: 1px solid #ff3333;
+            padding-top: 15px;
+            font-size: 0.85em;
+            line-height: 1.6;
+            color: #a3a8e2;
+        }
+        .navigation-links {
+            margin-top: 25px;
+            border-top: 1px dashed #ff3333;
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .navigation-links a {
+            color: #00ff66;
+            text-decoration: none;
+            border: 1px solid #00ff66;
+            padding: 8px 14px;
+            transition: all 0.2s ease;
+        }
+        .navigation-links a.primary {
+            color: #ffdd55;
+            border-color: #ffdd55;
+            font-weight: bold;
+        }
+        .navigation-links a:hover {
+            background: #00ff66;
+            color: #0b0f19;
+        }
+        .navigation-links a.primary:hover {
+            background: #ffdd55;
+            color: #0b0f19;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            [ECHO_ARCHIVE_SECURE_NODE_109] // ACCESS RESTRICTED
+        </div>
+        <div class="warning">
+            [ACCESS DENIED] UNLISTED DIRECTORY LOCKED
+        </div>
+
+        <pre class="ascii-banner">
+  _  _    ___  _  _  
+ | || |  / _ \| || | 
+ | || |_| | | | || |_
+ |__   _| |_| |__   _|
+    |_|  \___/   |_|  
+        </pre>
+
+        <div class="log-section">
+            <p style="margin: 0 0 10px 0; color: #d0d7de;">
+                The requested coordinate partition cannot be decrypted. Clearance credentials for Sector 07 (Transmission Passcode) have not been established or verified for this operator.
+            </p>
+            <p class="quote">
+                &gt; "Decryption key missing. Access to the unlisted lagoon node requires clearance sequence authorization from the BlogNET terminal."
+            </p>
+        </div>
+
+        <div class="status">
+            SECURITY LEVEL: RESTRICTED // CLEARANCE REQUIRED<br>
+            OPERATOR ID: <span id="operatorTag" style="color: #ffdd55;">{{USER_ID}}</span><br>
+            PREREQUISITE: SECTOR 07 TRANSMISSION PASSCODE (UNSOLVED)<br>
+            PARTITION INTEGRITY: ENCRYPTED
+        </div>
+
+        <div class="navigation-links">
+            <a href="/">&larr; [ ARCHIVE HOME ]</a>
+            <a href="{{RECALIBRATE_URL}}" id="backToTerminalLink" class="primary">[ PROCEED TO SECTOR 07 TERMINAL ] &rarr;</a>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlUserId = urlParams.get('userId');
+                if (!urlUserId || urlUserId.trim() === '') {
+                    const storedUserId = localStorage.getItem('asciiart_userId') || localStorage.getItem('wordsearch_userId');
+                    if (storedUserId && storedUserId.trim() !== '') {
+                        window.location.replace('/unlisted_lagoon.html?userId=' + encodeURIComponent(storedUserId.trim()));
+                    }
+                }
+            } catch (_) {}
+        })();
+    </script>
+</body>
+</html>

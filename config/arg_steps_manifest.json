@@ -86,7 +86,7 @@
 			"resetPrerequisiteStepId": "step_02_wordsearch"
 		},
 		"unlockPayload": {
-			"passcode": "NHW"
+			"passcode": "WHN"
 		}
 	},
 	{
@@ -98,7 +98,8 @@
 		"prerequisites": ["step_07_passcode"],
 		"prerequisiteMode": "ALL",
 		"unlockPayload": {
-			"url": "https://echoarchive.org/unlisted_lagoon.html"
+			"url": "https://echoarchive.org/unlisted_lagoon.html",
+			"passwordPart2": "K33P"
 		}
 	},
 	{
@@ -206,10 +207,10 @@
 		"type": "PASSCODE",
 		"title": "Combined Passcode Console",
 		"isUnordered": false,
-		"prerequisites": ["step_07_passcode", "step_15_git_commit"],
+		"prerequisites": ["step_07_passcode", "step_08_haven_redirect", "step_15_git_commit"],
 		"prerequisiteMode": "ALL",
 		"unlockPayload": {
-			"combinedCode": "NHW_echo_part2_0392"
+			"combinedCode": "WHN_K33P_echo_part2_0392"
 		}
 	},
 	{

@@ -58,7 +58,7 @@ Create a `.env` file in the root directory (see `.env.example`):
 ### Optional Variables
 - `ASCII_ART_REDIRECT_URL` / `PUZZLE_REDIRECT_URL`: Custom redirect destination URL upon solving the ASCII art puzzle (falls back to runtime payload / step definition / default).
 - `ASCII_ART_STEP_ID`: ARG step identifier for the ASCII art puzzle (default: `step_07_passcode`).
-- `ASCII_ART_PASSCODE`: Target passcode override (default: `NHW`).
+- `ASCII_ART_PASSCODE`: Target passcode override (default: `WHN`).
 - `ASCII_ART_MAX_ATTEMPTS`: Maximum failed attempts before security lockout (default: `4`).
 - `ASCII_ART_NEXT_STEP_ID`: Next step unlocked upon completion (default: `step_08_haven_redirect`).
 - `RESET_PREREQUISITE_STEP_ID`: Prerequisite step required to clear a lockout (default: `step_02_wordsearch`).

@@ -93,7 +93,7 @@ export class AsciiArtService extends BaseApiService {
 	public readonly defaultNextStepId = "step_08_haven_redirect";
 	public readonly defaultRedirectUrl =
 		"https://echoarchive.org/unlisted_lagoon.html";
-	public readonly defaultPasscode = "NHW";
+	public readonly defaultPasscode = "WHN";
 	public readonly defaultMaxAttempts = 4;
 
 	// In-memory fallback if state-service is temporarily offline
@@ -211,6 +211,51 @@ export class AsciiArtService extends BaseApiService {
 			}
 		} catch {
 			// ignore
+		}
+
+		return false;
+	}
+
+	public setPasscodeCompleted(userId: string, completed = true): void {
+		if (!userId || userId.trim() === "") return;
+		const cleanUserId = userId.trim();
+		if (completed) {
+			this.localCompleted.add(cleanUserId);
+		} else {
+			this.localCompleted.delete(cleanUserId);
+		}
+	}
+
+	public async isPasscodeCompleted(userId: string): Promise<boolean> {
+		if (!userId || userId.trim() === "") {
+			return false;
+		}
+
+		const cleanUserId = userId.trim();
+
+		// 1. Check local in-memory override/cache
+		if (this.localCompleted.has(cleanUserId)) {
+			return true;
+		}
+
+		const stepId = this.getStepId();
+
+		// 2. Check central state-service authority
+		try {
+			const stateUrl = `${this.getStateServiceUrl()}/state-api/player/state?userId=${encodeURIComponent(
+				cleanUserId,
+			)}`;
+			const res = await fetch(stateUrl);
+			if (res.ok) {
+				const data = (await res.json()) as PlayerStateResponse;
+				const completedIds: string[] = data.completedStepIds || [];
+				if (completedIds.includes(stepId)) {
+					this.localCompleted.add(cleanUserId);
+					return true;
+				}
+			}
+		} catch {
+			// state-service unreachable or running offline/isolated
 		}
 
 		return false;

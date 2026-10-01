@@ -24,7 +24,7 @@ describe("AsciiArtService", () => {
 						return {
 							id: "step_07_passcode",
 							title: "Passcode",
-							unlockPayload: { passcode: "NHW" },
+							unlockPayload: { passcode: "WHN" },
 							lockoutPolicy: {
 								maxAttempts: 4,
 								resetPrerequisiteStepId: "step_02_wordsearch",
@@ -103,10 +103,10 @@ describe("AsciiArtService", () => {
 	});
 
 	describe("validatePasscode", () => {
-		test("accepts correct passcode 'NHW' and marks puzzle complete", async () => {
+		test("accepts correct passcode 'WHN' and marks puzzle complete", async () => {
 			const result = await asciiArtService.validatePasscode(
 				"test-user-2",
-				"NHW",
+				"WHN",
 			);
 			expect(result.success).toBe(true);
 			expect(result.completed).toBe(true);
@@ -117,10 +117,10 @@ describe("AsciiArtService", () => {
 			expect(result.message).toContain("ACCESS GRANTED");
 		});
 
-		test("accepts lowercase 'nhw' (case-insensitive)", async () => {
+		test("accepts lowercase 'whn' (case-insensitive)", async () => {
 			const result = await asciiArtService.validatePasscode(
 				"test-user-case",
-				"nhw",
+				"whn",
 			);
 			expect(result.success).toBe(true);
 			expect(result.completed).toBe(true);
@@ -135,7 +135,7 @@ describe("AsciiArtService", () => {
 
 			const result = await asciiArtService.validatePasscode(
 				"test-user-dynamic-url",
-				"NHW",
+				"WHN",
 			);
 			expect(result.success).toBe(true);
 			expect(result.redirectUrl).toBe(
@@ -205,7 +205,7 @@ describe("AsciiArtService", () => {
 			// User can now enter the correct passcode and succeed
 			const retrySuccess = await asciiArtService.validatePasscode(
 				userId,
-				"NHW",
+				"WHN",
 			);
 			expect(retrySuccess.success).toBe(true);
 			expect(retrySuccess.completed).toBe(true);
