@@ -77,36 +77,6 @@
             line-height: 1.6;
             color: #a3a8e2;
         }
-        .navigation-links {
-            margin-top: 25px;
-            border-top: 1px dashed #ff3333;
-            padding-top: 15px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85em;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .navigation-links a {
-            color: #00ff66;
-            text-decoration: none;
-            border: 1px solid #00ff66;
-            padding: 8px 14px;
-            transition: all 0.2s ease;
-        }
-        .navigation-links a.primary {
-            color: #ffdd55;
-            border-color: #ffdd55;
-            font-weight: bold;
-        }
-        .navigation-links a:hover {
-            background: #00ff66;
-            color: #0b0f19;
-        }
-        .navigation-links a.primary:hover {
-            background: #ffdd55;
-            color: #0b0f19;
-        }
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.3; }
@@ -144,11 +114,6 @@
             OPERATOR ID: <span id="operatorTag" style="color: #ffdd55;">{{USER_ID}}</span><br>
             PREREQUISITE: SECTOR 07 TRANSMISSION PASSCODE (UNSOLVED)<br>
             PARTITION INTEGRITY: ENCRYPTED
-        </div>
-
-        <div class="navigation-links">
-            <a href="/">&larr; [ ARCHIVE HOME ]</a>
-            <a href="{{RECALIBRATE_URL}}" id="backToTerminalLink" class="primary">[ PROCEED TO SECTOR 07 TERMINAL ] &rarr;</a>
         </div>
     </div>
 
