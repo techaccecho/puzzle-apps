@@ -111,7 +111,8 @@ describe("Haven Lagoon Routing & Authorization", () => {
 		expect(response.headers["content-type"]).toContain("text/html");
 		expect(response.body).toContain("[ACCESS DENIED] UNLISTED DIRECTORY LOCKED");
 		expect(response.body).toContain("anonymous");
-		expect(response.body).toContain("/asciiart/puzzle");
+		expect(response.body).not.toContain("navigation-links");
+		expect(response.body).not.toContain("[ ARCHIVE HOME ]");
 		expect(response.body).not.toContain("K33P");
 	});
 
@@ -125,9 +126,8 @@ describe("Haven Lagoon Routing & Authorization", () => {
 		expect(response.headers["content-type"]).toContain("text/html");
 		expect(response.body).toContain("[ACCESS DENIED] UNLISTED DIRECTORY LOCKED");
 		expect(response.body).toContain("agent_echo_unsolved");
-		expect(response.body).toContain(
-			"/asciiart/puzzle?userId=agent_echo_unsolved",
-		);
+		expect(response.body).not.toContain("navigation-links");
+		expect(response.body).not.toContain("[ PROCEED TO SECTOR 07 TERMINAL ]");
 		expect(response.body).not.toContain("K33P");
 	});
 
