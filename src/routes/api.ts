@@ -386,6 +386,71 @@ export default async function apiRoutes(
 		},
 	);
 
+	fastify.post(
+		"/puzzle/haven/complete",
+		{
+			schema: {
+				description:
+					"Notify state-service of Step 8 Haven Lagoon access/completion",
+				tags: ["puzzle"],
+				body: {
+					type: "object",
+					required: ["userId"],
+					properties: {
+						userId: { type: "string" },
+						stepId: { type: "string" },
+					},
+				},
+				response: {
+					200: {
+						type: "object",
+						properties: {
+							success: { type: "boolean" },
+							message: { type: "string" },
+						},
+					},
+					400: errorResponse,
+					500: errorResponse,
+				},
+			} as FastifySchema,
+		},
+		async (request, reply) => {
+			try {
+				const { userId, stepId } = request.body as {
+					userId: string;
+					stepId?: string;
+				};
+				const targetStepId = stepId || "step_08_haven_redirect";
+
+				try {
+					await fetch(
+						`${env.STATE_SERVICE_URL}/state-api/player/step/complete`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								userId,
+								stepId: targetStepId,
+							}),
+						},
+					);
+				} catch (err) {
+					console.warn(
+						`Failed to notify state-service of ${targetStepId} completion`,
+						err,
+					);
+				}
+
+				return {
+					success: true,
+					message: "Haven step registered successfully.",
+				};
+			} catch (error: any) {
+				reply.status(500).send({ success: false, message: error.message });
+			}
+		},
+	);
+
 	fastify.get(
 		"/puzzle/wordsearch/list",
 		{

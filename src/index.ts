@@ -140,6 +140,67 @@ fastify.get("/asciiart/puzzle", async (request, reply) => {
 	reply.type("text/html").send(content);
 });
 
+fastify.get("/unlisted_lagoon.html", async (request, reply) => {
+	const { userId } = request.query as { userId?: string };
+
+	if (!userId || userId.trim() === "") {
+		const accessDeniedPath = path.join(
+			__dirname,
+			".",
+			"fe/haven/access-denied.html",
+		);
+		let content = fs.readFileSync(accessDeniedPath, "utf8");
+		content = content
+			.replace(/{{USER_ID}}/g, "anonymous")
+			.replace(/{{RECALIBRATE_URL}}/g, "/asciiart/puzzle");
+
+		reply.status(404).type("text/html").send(content);
+		return;
+	}
+
+	const isCompleted = await asciiArtService.isPasscodeCompleted(userId.trim());
+	if (!isCompleted) {
+		const accessDeniedPath = path.join(
+			__dirname,
+			".",
+			"fe/haven/access-denied.html",
+		);
+		let content = fs.readFileSync(accessDeniedPath, "utf8");
+		const recalibrateUrl = `/asciiart/puzzle?userId=${encodeURIComponent(
+			userId.trim(),
+		)}`;
+		content = content
+			.replace(/{{USER_ID}}/g, userId.trim())
+			.replace(/{{RECALIBRATE_URL}}/g, recalibrateUrl);
+
+		reply.status(404).type("text/html").send(content);
+		return;
+	}
+
+	const filePath = path.join(__dirname, ".", "fe/haven/unlisted_lagoon.html");
+	let content = fs.readFileSync(filePath, "utf8");
+
+	content = content
+		.replace(/{{API_BASE_URL}}/g, env.API_BASE_URL)
+		.replace(/{{USER_ID}}/g, userId.trim());
+
+	reply.type("text/html").send(content);
+});
+
+fastify.get("/haven/lagoon", async (request, reply) => {
+	const query = request.raw.url?.includes("?")
+		? request.raw.url.slice(request.raw.url.indexOf("?"))
+		: "";
+	return reply.redirect(`/unlisted_lagoon.html${query}`);
+});
+
+fastify.get("/haven", async (request, reply) => {
+	const query = request.raw.url?.includes("?")
+		? request.raw.url.slice(request.raw.url.indexOf("?"))
+		: "";
+	return reply.redirect(`/unlisted_lagoon.html${query}`);
+});
+
 // Register API routes
 fastify.register(apiRoutes, { prefix: "/v1/api" });
 

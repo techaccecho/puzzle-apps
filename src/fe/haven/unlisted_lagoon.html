@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURE NODE - UNLISTED LAGOON</title>
+    <style>
+        body {
+            background-color: #0b0f19;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 40px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            border: 2px solid #00ff66;
+            background: rgba(0, 255, 102, 0.05);
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #00ff66;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 1.2em;
+            letter-spacing: 2px;
+        }
+        .warning {
+            color: #ff3333;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: blink 1.5s infinite;
+        }
+        .data-block {
+            background: #02050a;
+            border: 1px dashed #00ff66;
+            padding: 20px;
+            word-wrap: break-word;
+            margin: 20px 0;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        .status {
+            margin-top: 20px;
+            border-top: 1px solid #00ff66;
+            padding-top: 15px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            [ECHO_ARCHIVE_SECURE_NODE_109]
+        </div>
+        <div class="warning">
+            WARNING: UNLISTED DIRECTORY. ACCESS AUTHORIZED.
+        </div>
+        <p>Decrypted cache partition recovered from local coordinate drift. File system integrity compromised.</p>
+        
+        <div class="data-block">
+            <strong>DATA BLOCK (BASE64):</strong><br><br>
+            WW91VHViZTogaHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQpHaXRIdWI6IHRlY2hhY2NlY2hvL2VjaG8taGF2ZW4tc2Vx
+        </div>
+
+        <p style="font-size: 0.9em; color: #a3a8e2; border-top: 1px dashed #00ff66; padding-top: 15px;">
+            <strong>PASSWORD PART 2 RECOVERED:</strong> <code>K33P</code>
+        </p>
+
+        <div class="status">
+            SYSTEM STATUS: SECURE CONNECTION ACTIVE<br>
+            OPERATOR CLEARANCE: <span id="operatorTag">GUEST</span><br>
+            RECOVERED OBJECTS: 2<br>
+            INTEGRITY: INTACT
+        </div>
+    </div>
+
+    <script>
+        window.API_BASE_URL = "{{API_BASE_URL}}";
+        window.USER_ID = "{{USER_ID}}";
+
+        (() => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('userId');
+            const injectedUserId = (window.USER_ID && window.USER_ID !== '{{USER_ID}}' && window.USER_ID.trim() !== '') ? window.USER_ID.trim() : null;
+            const storedUserId = localStorage.getItem('wordsearch_userId') || localStorage.getItem('asciiart_userId');
+
+            const effectiveUserId = urlUserId || injectedUserId || storedUserId || 'guest';
+
+            const operatorTag = document.getElementById('operatorTag');
+            if (operatorTag) {
+                operatorTag.textContent = effectiveUserId.toUpperCase();
+            }
+
+            // Notify backend of Step 8 completion if player is identified
+            if (effectiveUserId && effectiveUserId !== 'guest') {
+                const apiBase = (window.API_BASE_URL && window.API_BASE_URL !== '{{API_BASE_URL}}') ? window.API_BASE_URL : '/v1/api';
+                fetch(`${apiBase}/puzzle/haven/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: effectiveUserId, stepId: 'step_08_haven_redirect' })
+                }).catch((err) => {
+                    // Non-blocking background notification
+                    console.debug('State service sync notification:', err);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
