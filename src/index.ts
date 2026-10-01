@@ -48,11 +48,6 @@ await fastify.register(fastifyStatic, {
 	prefix: "/assets/",
 });
 
-fastify.get("/", async (request, reply) => {
-	const filePath = path.join(__dirname, ".", "fe/home.html");
-	const content = fs.readFileSync(filePath, "utf8");
-	reply.type("text/html").send(content);
-});
 
 fastify.get("/admin", async (request, reply) => {
 	const filePath = path.join(__dirname, ".", "fe/admin/admin.html");
