@@ -196,6 +196,32 @@ fastify.get("/haven", async (request, reply) => {
 	return reply.redirect(`/unlisted_lagoon.html${query}`);
 });
 
+fastify.get("/echo", async (request, reply) => {
+	const { userId } = request.query as { userId?: string };
+	const filePath = path.join(__dirname, ".", "fe/repo/echo.html");
+	let content = fs.readFileSync(filePath, "utf8");
+
+	content = content
+		.replace(/{{API_BASE_URL}}/g, env.API_BASE_URL)
+		.replace(/{{USER_ID}}/g, (userId || "guest").trim());
+
+	reply.type("text/html").send(content);
+});
+
+fastify.get("/viewcvs/echo", async (request, reply) => {
+	const query = request.raw.url?.includes("?")
+		? request.raw.url.slice(request.raw.url.indexOf("?"))
+		: "";
+	return reply.redirect(`/echo${query}`);
+});
+
+fastify.get("/archive/echo", async (request, reply) => {
+	const query = request.raw.url?.includes("?")
+		? request.raw.url.slice(request.raw.url.indexOf("?"))
+		: "";
+	return reply.redirect(`/echo${query}`);
+});
+
 // Register API routes
 fastify.register(apiRoutes, { prefix: "/v1/api" });
 

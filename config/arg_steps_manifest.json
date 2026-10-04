@@ -163,10 +163,13 @@
 		"id": "step_14_git_repo",
 		"order": 14,
 		"type": "EXTERNAL_LINK",
-		"title": "GitHub Investigation Repository",
+		"title": "echo SourceForge CVS Archive",
 		"isUnordered": false,
 		"prerequisites": ["step_13_youtube"],
-		"prerequisiteMode": "ALL"
+		"prerequisiteMode": "ALL",
+		"unlockPayload": {
+			"url": "/echo"
+		}
 	},
 	{
 		"id": "step_15_git_commit",

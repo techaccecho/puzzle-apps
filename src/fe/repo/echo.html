@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SourceForge.net: CVS Repository: echo</title>
+  <link rel="stylesheet" href="/assets/css/viewcvs.css">
+</head>
+<body>
+
+  <!-- SourceForge Topbar -->
+  <header class="sf-topbar">
+    <div class="sf-brand">
+      <span class="sf-brand-logo">SourceForge.net</span>
+      <span class="sf-brand-tag">Open Source Code Repository</span>
+    </div>
+    <div class="sf-operator-info">
+      <span>INVESTIGATION NODE:</span>
+      <span class="sf-operator-badge" id="operatorTag">GUEST</span>
+    </div>
+  </header>
+
+  <!-- Archive Lifecycle Banner -->
+  <div class="archive-banner">
+    <div class="archive-banner-text">
+      <span class="archive-pill">Archived</span>
+      <span><strong>Notice:</strong> This project CVS repository was archived on <strong>November 14, 2004</strong> due to extended project inactivity. Commit access is disabled; the tree is preserved in read-only mode for historical reference.</span>
+    </div>
+    <div>
+      <span style="color:#b45309; font-size:11px;">READ-ONLY SNAPSHOT</span>
+    </div>
+  </div>
+
+  <!-- Project Header & Navigation -->
+  <div class="project-header">
+    <div class="repo-container" style="margin:0 auto; padding:0;">
+      <div class="project-title-row">
+        <h1 class="project-name">echo</h1>
+        <span class="repo-status-badge">cvs: /cvsroot/echo</span>
+      </div>
+      <p class="project-desc">
+        Archived source tree of the unreleased 2000–2002 2D tile-based narrative adventure game engine and overworld mechanics.
+      </p>
+
+      <div class="viewcvs-nav-bar">
+        <a href="javascript:void(0)" id="tabFiles" class="nav-tab active" onclick="window.echoRepo.switchTab('files')">Files & Directory View</a>
+        <a href="javascript:void(0)" id="tabCommits" class="nav-tab" onclick="window.echoRepo.switchTab('commits')">Commit History (15)</a>
+        <a href="javascript:void(0)" id="tabIrc" class="nav-tab" onclick="window.echoRepo.switchTab('irc')">Developer IRC Logs</a>
+        <a href="javascript:void(0)" id="tabForensics" class="nav-tab" onclick="window.echoRepo.switchTab('forensics')">Disk Forensics & Sector Map</a>
+        <a href="javascript:void(0)" id="tabStats" class="nav-tab" onclick="window.echoRepo.switchTab('stats')">Rebuild Team & Metrics</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Repository View -->
+  <main class="repo-container">
+
+    <!-- Section 1: File Browser -->
+    <div id="sectionFiles">
+      <div class="repo-toolbar">
+        <div class="search-box-wrap">
+          <span>find:</span>
+          <input type="text" class="search-input" id="fileFilterInput" placeholder="Filter files in repository (e.g. portal, log, dialogue, void, carrier)..." oninput="window.echoRepo.filterFiles(this.value)">
+        </div>
+        <div class="toolbar-actions">
+          <button class="btn-retro" id="soundToggleBtn" onclick="window.echoRepo.toggleSound()">Sound: ON</button>
+        </div>
+      </div>
+
+      <div class="breadcrumbs" id="repoBreadcrumbs">
+        <a href="javascript:void(0)"><strong>[echo]</strong></a>
+      </div>
+
+      <!-- File Table -->
+      <div class="cvs-table-container">
+        <table class="cvs-table">
+          <thead>
+            <tr>
+              <th style="width: 32%;">File / Directory</th>
+              <th style="width: 10%;">Rev</th>
+              <th style="width: 14%;">Age</th>
+              <th style="width: 14%;">Author</th>
+              <th style="width: 30%;">Last Log Entry</th>
+            </tr>
+          </thead>
+          <tbody id="cvsTableBody">
+            <!-- Populated dynamically by viewcvs.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Code / File Viewer Pane -->
+      <div class="code-viewer-container" id="codeViewer">
+        <div class="code-viewer-header">
+          <div class="code-file-title" id="codeFileTitle">README.md</div>
+          <div class="code-viewer-actions">
+            <button class="btn-retro btn-retro-primary" id="viewDiffBtn" style="display:none;">View Revision Diff</button>
+            <button class="btn-retro" id="hexToggleBtn" onclick="window.echoRepo.toggleHexMode()">Hex Dump Mode</button>
+            <button class="btn-retro" onclick="window.echoRepo.closeFile()">Close File</button>
+          </div>
+        </div>
+        <pre class="code-pre-box" id="codeContent"></pre>
+      </div>
+    </div>
+
+    <!-- Section 2: Commit History -->
+    <div id="sectionCommits" style="display:none;">
+      <div class="cvs-table-container">
+        <table class="cvs-table">
+          <thead>
+            <tr>
+              <th style="width: 12%;">Commit</th>
+              <th style="width: 14%;">Committer</th>
+              <th style="width: 20%;">Date</th>
+              <th style="width: 22%;">Target File</th>
+              <th style="width: 32%;">Commit Message</th>
+            </tr>
+          </thead>
+          <tbody id="commitsTableBody">
+            <!-- Populated dynamically by viewcvs.js -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 3: Developer IRC Logs -->
+    <div id="sectionIrc" style="display:none;">
+      <div class="cvs-table-container" style="padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+          <div>
+            <strong style="color:var(--sf-navy); font-size:13px;">Channel: #echo-dev on irc.afternet.org</strong>
+            <span style="color:#64748b; font-size:11px; margin-left:8px;">[Archived Logs: 2026-07-05 to 2026-07-08 UTC]</span>
+          </div>
+          <span style="font-size:11px; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:3px; font-weight:bold;">CHANNEL SEQUESTERED</span>
+        </div>
+        <div class="irc-container" id="ircLogContainer">
+          <!-- Populated dynamically by viewcvs.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Disk Forensics & Sector Map -->
+    <div id="sectionForensics" style="display:none;">
+      <div class="cvs-table-container" style="padding:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+          <div>
+            <strong style="color:var(--sf-navy); font-size:13px;">Floppy Disk Carving & Physical Sector Map</strong>
+            <span style="color:#64748b; font-size:11px; margin-left:8px;">[Media: 3.5" 1.44MB MFM Diskette Image #001]</span>
+          </div>
+          <span style="font-size:11px; background:#ecfdf5; color:#065f46; padding:2px 8px; border-radius:3px; font-weight:bold;">SECTOR 0x7F2A EXTRACTED</span>
+        </div>
+        <pre class="sector-map-container" id="sectorMapPre">Loading sector forensics map...</pre>
+      </div>
+    </div>
+
+    <!-- Section 5: Rebuild Team & Metrics -->
+    <div id="sectionStats" style="display:none;">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Repository Profile <span>[CVS 1.11.2]</span></h3>
+          <table class="stat-table">
+            <tr><td class="label">Project Root:</td><td class="val"><code>/cvsroot/echo</code></td></tr>
+            <tr><td class="label">Access Mode:</td><td class="val"><span style="color:#b45309; font-weight:bold;">Read-Only / Archived</span></td></tr>
+            <tr><td class="label">Archived On:</td><td class="val">November 14, 2004 (18:30:14 UTC)</td></tr>
+            <tr><td class="label">Total Files:</td><td class="val">34 active source files</td></tr>
+            <tr><td class="label">Total Commits:</td><td class="val">15 chronological milestones</td></tr>
+            <tr><td class="label">Original Game:</td><td class="val">echo (circa 2000–2002)</td></tr>
+            <tr><td class="label">Original Engine:</td><td class="val">C99 / SDL / DOS (2000–2002)</td></tr>
+          </table>
+        </div>
+
+        <div class="stat-card">
+          <h3>Active Reconstruction Team</h3>
+          <table class="stat-table">
+            <tr><td class="label"><strong>cvsadmin</strong></td><td class="val">System Infrastructure & Code Freeze</td></tr>
+            <tr><td class="label"><strong>vstrickland</strong></td><td class="val">Lead Reverse Engineer / Sector Carving</td></tr>
+            <tr><td class="label"><strong>kmatsuda</strong></td><td class="val">Media Forensics / Floppy Sector Recovery</td></tr>
+            <tr><td class="label"><strong>hchen</strong></td><td class="val">Game Subsystems, Water Vectors & Dialogue</td></tr>
+            <tr><td class="label"><strong>dcorvin</strong></td><td class="val"><span style="color:#ef4444; font-weight:bold;">[TERMINATED]</span> Root Portal Incident</td></tr>
+          </table>
+        </div>
+
+        <div class="stat-card">
+          <h3>Investigation Cross-References</h3>
+          <table class="stat-table">
+            <tr><td class="label">Part 1 (ASCII Art):</td><td class="val"><code>WHN</code> (Broadcast Clue)</td></tr>
+            <tr><td class="label">Part 2 (Haven Lagoon):</td><td class="val"><code>K33P</code> (Unlisted Dialogue)</td></tr>
+            <tr><td class="label">Part 3 (CVS Sector):</td><td class="val"><code>echo_part2_0392</code> (Sector 0x7F2A)</td></tr>
+            <tr><td class="label">Combined Key:</td><td class="val"><code>WHN_K33P_echo_part2_0392</code></td></tr>
+            <tr><td class="label">Destination Beacon:</td><td class="val"><code>http://echoarchive5j7x2k.onion</code></td></tr>
+            <tr><td class="label">Audio Carrier:</td><td class="val">1420.405 Hz (Sinusoidal Tone)</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Diff Viewer Modal -->
+  <div class="diff-modal" id="diffModal">
+    <div class="diff-modal-content">
+      <div class="diff-modal-header">
+        <div class="diff-modal-title">Revision Diff Inspector</div>
+        <button class="diff-modal-close" onclick="window.echoRepo.closeDiff()">&times;</button>
+      </div>
+      <div class="diff-modal-body">
+        <div class="diff-info-box" id="diffMeta">
+          Loading diff metadata...
+        </div>
+
+        <pre class="diff-pre" id="diffPre"></pre>
+
+        <!-- Clue Acquisition Callout Card -->
+        <div class="clue-callout-card">
+          <div>
+            <div class="clue-callout-title">&#x1F511; Passcode Fragment Discovered</div>
+            <div class="clue-callout-desc">
+              Passcode Part 3 has been extracted from the Sector 0x7F2A root portal failsafe routine.
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <code class="clue-code-token">echo_part2_0392</code>
+            <button class="btn-retro btn-retro-primary" onclick="window.echoRepo.claimPasscode()">Record to Investigation</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-notice" id="toastNotice">
+    Clue recorded to investigation state.
+  </div>
+
+  <!-- Footer -->
+  <footer class="sf-footer">
+    SourceForge ViewCVS v0.9.2 &bull; Archive Snapshot &bull; Project: <code>echo</code> (Read-Only) &bull; Project Echo Investigation Network
+  </footer>
+
+  <script>
+    window.API_BASE_URL = "{{API_BASE_URL}}";
+    window.USER_ID = "{{USER_ID}}";
+  </script>
+  <script src="/assets/js/viewcvs.js"></script>
+</body>
+</html>
