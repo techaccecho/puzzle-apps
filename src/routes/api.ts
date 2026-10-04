@@ -451,6 +451,77 @@ export default async function apiRoutes(
 		},
 	);
 
+	fastify.post(
+		"/puzzle/echo/complete",
+		{
+			schema: {
+				description:
+					"Notify state-service of Step 15 echo repository clue discovery",
+				tags: ["puzzle"],
+				body: {
+					type: "object",
+					required: ["userId"],
+					properties: {
+						userId: { type: "string" },
+						stepId: { type: "string" },
+					},
+				},
+				response: {
+					200: {
+						type: "object",
+						properties: {
+							success: { type: "boolean" },
+							message: { type: "string" },
+							passcodePart3: { type: "string" },
+						},
+					},
+					400: errorResponse,
+					500: errorResponse,
+				},
+			} as FastifySchema,
+		},
+		async (request, reply) => {
+			try {
+				const { userId, stepId } = request.body as {
+					userId: string;
+					stepId?: string;
+				};
+				const targetStepId = stepId || "step_15_git_commit";
+
+				try {
+					await fetch(
+						`${env.STATE_SERVICE_URL}/state-api/player/step/complete`,
+						{
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								userId,
+								stepId: targetStepId,
+								customData: {
+									passcodePart3: "echo_part2_0392",
+									recoveredFrom: "echo/src/world/portal.c",
+								},
+							}),
+						},
+					);
+				} catch (err) {
+					console.warn(
+						`Failed to notify state-service of ${targetStepId} completion`,
+						err,
+					);
+				}
+
+				return {
+					success: true,
+					message: "echo repository clue registered successfully.",
+					passcodePart3: "echo_part2_0392",
+				};
+			} catch (error: any) {
+				reply.status(500).send({ success: false, message: error.message });
+			}
+		},
+	);
+
 	fastify.get(
 		"/puzzle/wordsearch/list",
 		{

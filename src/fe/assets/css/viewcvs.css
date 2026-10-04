@@ -1,0 +1,714 @@
+/* ==========================================================================
+   SourceForge / ViewCVS Classic Early-2000s Aesthetic
+   Project: echo (Archived Repository)
+   ========================================================================== */
+
+:root {
+  --sf-navy-dark: #1b2938;
+  --sf-navy: #283a52;
+  --sf-navy-light: #3d526e;
+  --sf-orange: #ea6c00;
+  --sf-orange-hover: #ff7700;
+  --bg-page: #f5f6f8;
+  --bg-card: #ffffff;
+  --border-color: #d1d5db;
+  --border-light: #e5e7eb;
+  --text-main: #1f2937;
+  --text-muted: #4b5563;
+  --text-light: #6b7280;
+  --code-bg: #1e222b;
+  --code-text: #e5e7eb;
+  --diff-add-bg: #d1fae5;
+  --diff-add-text: #065f46;
+  --diff-del-bg: #fee2e2;
+  --diff-del-text: #991b1b;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-main);
+  background-color: var(--bg-page);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: #0b5394;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+a:hover {
+  color: var(--sf-orange);
+}
+
+/* --- Top SourceForge Banner --- */
+.sf-topbar {
+  background: linear-gradient(180deg, var(--sf-navy) 0%, var(--sf-navy-dark) 100%);
+  color: #ffffff;
+  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 3px solid var(--sf-orange);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.sf-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sf-brand-logo {
+  font-family: Impact, "Arial Black", sans-serif;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+  background: var(--sf-orange);
+  padding: 2px 8px;
+  border-radius: 2px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.sf-brand-tag {
+  font-size: 11px;
+  color: #cbd5e1;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sf-operator-info {
+  font-size: 11px;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sf-operator-badge {
+  background: #334155;
+  color: #f8fafc;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* --- Archive State Banner --- */
+.archive-banner {
+  background: #fffbeb;
+  border-bottom: 1px solid #fde68a;
+  color: #92400e;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.archive-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.archive-pill {
+  background: #f59e0b;
+  color: #ffffff;
+  font-weight: bold;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* --- Project Header / Breadcrumbs --- */
+.project-header {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px;
+}
+
+.project-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.project-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--sf-navy-dark);
+}
+
+.repo-status-badge {
+  font-size: 11px;
+  background: #e2e8f0;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: normal;
+}
+
+.project-desc {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.viewcvs-nav-bar {
+  display: flex;
+  gap: 16px;
+  border-top: 1px dashed var(--border-light);
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.nav-tab {
+  font-weight: bold;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 3px;
+}
+
+.nav-tab.active {
+  background: var(--sf-navy);
+  color: #ffffff;
+}
+
+.nav-tab:not(.active):hover {
+  background: #e2e8f0;
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+/* --- Main Layout --- */
+.repo-container {
+  max-width: 1300px;
+  width: 100%;
+  margin: 16px auto;
+  padding: 0 16px;
+  flex: 1;
+}
+
+.breadcrumbs {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+
+.breadcrumbs strong {
+  color: var(--sf-navy);
+}
+
+/* --- Table Styles (Classic ViewCVS) --- */
+.cvs-table-container {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+}
+
+.cvs-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+.cvs-table th {
+  background: #eef2f6;
+  border-bottom: 2px solid var(--border-color);
+  padding: 8px 10px;
+  font-weight: bold;
+  color: var(--sf-navy);
+}
+
+.cvs-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.cvs-table tr:hover td {
+  background-color: #f8fafc;
+}
+
+.cvs-table tr.clickable {
+  cursor: pointer;
+}
+
+.file-icon {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: 2px;
+  margin-right: 6px;
+  text-align: center;
+  min-width: 30px;
+}
+
+.icon-dir { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.icon-c { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.icon-h { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+.icon-doc { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+.icon-py { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+
+.rev-badge {
+  font-family: monospace;
+  font-weight: bold;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 3px;
+  color: #334155;
+  text-decoration: none;
+}
+
+.rev-badge:hover {
+  background: var(--sf-orange);
+  color: #ffffff;
+  border-color: var(--sf-orange);
+  text-decoration: none;
+}
+
+.author-tag {
+  font-weight: 500;
+  color: #334155;
+}
+
+.log-summary {
+  color: var(--text-muted);
+  max-width: 450px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cvs-target-row {
+  background-color: #eff6ff !important;
+}
+
+.cvs-target-row td {
+  border-top: 1px solid #bfdbfe;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+/* --- Code & File Viewer --- */
+.code-viewer-container {
+  display: none;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  margin-bottom: 16px;
+}
+
+.code-viewer-header {
+  background: #eef2f6;
+  border-bottom: 1px solid var(--border-color);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-file-title {
+  font-weight: bold;
+  font-size: 13px;
+  color: var(--sf-navy);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.code-viewer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-retro {
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 2px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-retro:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  text-decoration: none;
+}
+
+.btn-retro-primary {
+  background: var(--sf-orange);
+  border-color: var(--sf-orange);
+  color: #ffffff;
+}
+
+.btn-retro-primary:hover {
+  background: var(--sf-orange-hover);
+  color: #ffffff;
+}
+
+.code-pre-box {
+  background: var(--code-bg);
+  color: var(--code-text);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 14px;
+  overflow-x: auto;
+  max-height: 520px;
+  border-top: 1px solid #111827;
+}
+
+/* --- Diff Viewer (Modal / Inline) --- */
+.diff-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.7);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.diff-modal-content {
+  background: #ffffff;
+  border: 2px solid var(--sf-navy);
+  border-radius: 4px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.diff-modal-header {
+  background: var(--sf-navy);
+  color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.diff-modal-title {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.diff-modal-close {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.diff-modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.diff-info-box {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 10px 12px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+
+.diff-pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  padding: 12px;
+  border-radius: 3px;
+  overflow-x: auto;
+}
+
+.diff-line-add {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+  display: block;
+}
+
+.diff-line-del {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  display: block;
+}
+
+.diff-line-ctx {
+  color: #94a3b8;
+  display: block;
+}
+
+/* --- Clue Highlight Card inside Diff --- */
+.clue-callout-card {
+  margin-top: 14px;
+  padding: 12px;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clue-callout-title {
+  font-weight: bold;
+  color: #065f46;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.clue-callout-desc {
+  font-size: 11px;
+  color: #047857;
+}
+
+.clue-code-token {
+  font-family: monospace;
+  font-weight: bold;
+  background: #ffffff;
+  padding: 3px 8px;
+  border: 1px dashed #059669;
+  border-radius: 3px;
+  color: #047857;
+  font-size: 13px;
+}
+
+/* --- Toast Notification --- */
+.toast-notice {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #065f46;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  font-weight: bold;
+  display: none;
+  z-index: 2000;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- Toolbar & Search Bar --- */
+.repo-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-box-wrap {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 5px 10px;
+  border-radius: 3px;
+  flex: 1;
+  max-width: 450px;
+}
+
+.search-box-wrap span {
+  color: var(--text-light);
+  font-family: monospace;
+  margin-right: 6px;
+  font-size: 11px;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  font-family: inherit;
+  font-size: 12px;
+  width: 100%;
+  color: var(--text-main);
+  background: transparent;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Hex Dump Mode Styling --- */
+.hex-pre {
+  background: #0d1117;
+  color: #38bdf8;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  padding: 12px;
+  overflow-x: auto;
+  border-radius: 3px;
+  max-height: 600px;
+}
+
+/* --- IRC Log Viewer --- */
+.irc-container {
+  background: #0a0e14;
+  color: #d1d5db;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 16px;
+  border: 1px solid var(--sf-navy);
+  border-radius: 4px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+  max-height: 550px;
+  overflow-y: auto;
+}
+
+.irc-line {
+  margin-bottom: 5px;
+  display: flex;
+  gap: 8px;
+}
+
+.irc-time {
+  color: #64748b;
+  user-select: none;
+  font-size: 11px;
+}
+
+.irc-nick {
+  font-weight: bold;
+  user-select: none;
+}
+
+.irc-nick-vstrickland { color: #38bdf8; }
+.irc-nick-kmatsuda { color: #fbbf24; }
+.irc-nick-hchen { color: #a78bfa; }
+.irc-nick-cvsadmin { color: #f87171; }
+.irc-nick-dcorvin { color: #f43f5e; }
+
+.irc-msg {
+  color: #e2e8f0;
+}
+
+.irc-msg.highlight {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.15);
+  padding: 1px 5px;
+  border-radius: 2px;
+  border: 1px dashed rgba(52, 211, 153, 0.4);
+}
+
+/* --- Sector Forensics Map --- */
+.sector-map-container {
+  background: #0f172a;
+  color: #38bdf8;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 16px;
+  border: 1px solid #1e293b;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+/* --- Project Stats & Team Grid --- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  padding: 16px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-card h3 {
+  font-size: 13px;
+  color: var(--sf-navy);
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.stat-table {
+  width: 100%;
+  font-size: 12px;
+  border-collapse: collapse;
+}
+
+.stat-table td {
+  padding: 5px 0;
+  vertical-align: top;
+}
+
+.stat-table td.label {
+  color: var(--text-light);
+  width: 45%;
+}
+
+.stat-table td.val {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* --- Footer --- */
+.sf-footer {
+  background: #ffffff;
+  border-top: 1px solid var(--border-color);
+  padding: 16px;
+  font-size: 11px;
+  color: var(--text-light);
+  text-align: center;
+  margin-top: auto;
+}
+
