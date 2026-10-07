@@ -357,7 +357,94 @@ export class AsciiArtService extends BaseApiService {
 
 		const nextStepId = options.nextStepId || this.getNextStepId();
 
-		// 1. Check unlockedPayloads from state-service complete / projection
+		// 1. Query redirectUrls database table in Convex (via serviceMapping or direct type)
+		// This MUST take precedence over static step definitions and default manifests
+		// so that changes made in the redirectUrls table or Admin Portal are immediately honored.
+		try {
+			let redirectType: string | undefined;
+			try {
+				const mapping = (await convexService.query("serviceMapping:get", {
+					serviceName: "ascii-art",
+				})) as { redirectUrlType?: string } | null;
+				if (mapping?.redirectUrlType) {
+					redirectType = mapping.redirectUrlType;
+				}
+			} catch {
+				// serviceMapping lookup failed or unconfigured
+			}
+
+			const candidateTypes = [
+				...(redirectType ? [redirectType] : []),
+				"puzzle-asciiart",
+				"ascii-art",
+				"haven-redirect",
+				nextStepId,
+			];
+			const uniqueCandidateTypes = Array.from(new Set(candidateTypes));
+
+			for (const type of uniqueCandidateTypes) {
+				try {
+					const redirectData = (await convexService.query("redirectUrl:get", {
+						type,
+					})) as { url?: string; redirectUrl?: string } | string | null;
+
+					const candidateUrl =
+						typeof redirectData === "string"
+							? redirectData
+							: redirectData?.url || redirectData?.redirectUrl;
+
+					if (
+						candidateUrl &&
+						typeof candidateUrl === "string" &&
+						candidateUrl.trim() !== ""
+					) {
+						return this.appendUserId(candidateUrl.trim(), options.userId);
+					}
+				} catch {
+					// continue checking
+				}
+			}
+
+			// Also check redirectUrl:list in Convex in case entry is keyed by serviceName
+			try {
+				const allRedirects = (await convexService.query(
+					"redirectUrl:list",
+				)) as Array<{
+					serviceName?: string;
+					type?: string;
+					url?: string;
+					redirectUrl?: string;
+				}> | null;
+
+				if (Array.isArray(allRedirects)) {
+					const matched = allRedirects.find(
+						(r) =>
+							r?.serviceName === "ascii-art" ||
+							r?.type === "puzzle-asciiart" ||
+							r?.type === "haven-redirect" ||
+							r?.type === nextStepId ||
+							(redirectType && r?.type === redirectType),
+					);
+					const matchedUrl = matched?.url || matched?.redirectUrl;
+					if (
+						matchedUrl &&
+						typeof matchedUrl === "string" &&
+						matchedUrl.trim() !== ""
+					) {
+						return this.appendUserId(matchedUrl.trim(), options.userId);
+					}
+				}
+			} catch {
+				// redirectUrl:list query failed
+			}
+		} catch (err) {
+			console.warn(
+				"[AsciiArtService] Could not resolve redirect URL from redirectUrls table in Convex:",
+				err,
+			);
+		}
+
+		// 2. Fallback to unlockedPayloads from state-service complete / projection
 		if (options.unlockedPayloads) {
 			const direct = options.unlockedPayloads[nextStepId] as
 				| { url?: string }
@@ -384,7 +471,7 @@ export class AsciiArtService extends BaseApiService {
 			}
 		}
 
-		// 2. Query player state from state-service if userId provided
+		// 3. Fallback to querying player state from state-service if userId provided
 		if (options.userId) {
 			try {
 				const stateUrl = `${this.getStateServiceUrl()}/state-api/player/state?userId=${encodeURIComponent(
@@ -424,7 +511,7 @@ export class AsciiArtService extends BaseApiService {
 			}
 		}
 
-		// 3. Query next step definition directly from Convex/manifest
+		// 4. Fallback to next step definition directly from Convex/manifest
 		try {
 			const nextStepDef = await this.getStepDefinition(nextStepId);
 			if (nextStepDef?.unlockPayload?.url) {
@@ -434,19 +521,7 @@ export class AsciiArtService extends BaseApiService {
 			// ignore
 		}
 
-		// 4. Query redirectUrl table in Convex
-		try {
-			const redirectData = (await convexService.query("redirectUrl:get", {
-				type: "puzzle-asciiart",
-			})) as { url?: string } | null;
-			if (redirectData?.url) {
-				return this.appendUserId(redirectData.url, options.userId);
-			}
-		} catch {
-			// ignore
-		}
-
-		// 5. Fallback default
+		// 5. Final safety fallback default
 		return this.appendUserId(this.defaultRedirectUrl, options.userId);
 	}
 

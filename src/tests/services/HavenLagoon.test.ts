@@ -109,7 +109,9 @@ describe("Haven Lagoon Routing & Authorization", () => {
 
 		expect(response.statusCode).toBe(404);
 		expect(response.headers["content-type"]).toContain("text/html");
-		expect(response.body).toContain("[ACCESS DENIED] UNLISTED DIRECTORY LOCKED");
+		expect(response.body).toContain(
+			"[ACCESS DENIED] UNLISTED DIRECTORY LOCKED",
+		);
 		expect(response.body).toContain("anonymous");
 		expect(response.body).not.toContain("navigation-links");
 		expect(response.body).not.toContain("[ ARCHIVE HOME ]");
@@ -124,7 +126,9 @@ describe("Haven Lagoon Routing & Authorization", () => {
 
 		expect(response.statusCode).toBe(404);
 		expect(response.headers["content-type"]).toContain("text/html");
-		expect(response.body).toContain("[ACCESS DENIED] UNLISTED DIRECTORY LOCKED");
+		expect(response.body).toContain(
+			"[ACCESS DENIED] UNLISTED DIRECTORY LOCKED",
+		);
 		expect(response.body).toContain("agent_echo_unsolved");
 		expect(response.body).not.toContain("navigation-links");
 		expect(response.body).not.toContain("[ PROCEED TO SECTOR 07 TERMINAL ]");
@@ -149,7 +153,7 @@ describe("Haven Lagoon Routing & Authorization", () => {
 		expect(response.body).toContain("PASSWORD PART 2 RECOVERED:");
 		expect(response.body).toContain("K33P");
 		expect(response.body).toContain(
-			"WW91VHViZTogaHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQpHaXRIdWI6IHRlY2hhY2NlY2hvL2VjaG8taGF2ZW4tc2Vx",
+			"WW91VHViZTogaHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj1kUXc0dzlXZ1hjUQpFY2hvOiBodHRwczovL2VjaG8tZ2FtZS1hcmNoaXZlLnNpdGUvZWNobw==",
 		);
 		expect(response.body).toContain("agent_echo_01");
 	});

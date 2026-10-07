@@ -18,7 +18,7 @@ describe("AsciiArtService", () => {
 		asciiArtService.setWordsearchCompleted("test-user-lockout");
 
 		vi.spyOn(convexService, "query").mockImplementation(
-			async (name, args: any) => {
+			async (name, args?: Record<string, unknown>) => {
 				if (name === "stepDefinitions:getById") {
 					if (args?.id === "step_07_passcode") {
 						return {
@@ -38,7 +38,7 @@ describe("AsciiArtService", () => {
 		);
 		vi.spyOn(convexService, "mutation").mockResolvedValue({
 			success: true,
-		} as any);
+		});
 		vi.stubGlobal(
 			"fetch",
 			vi.fn().mockRejectedValue(new Error("state-service offline in tests")),
@@ -148,6 +148,77 @@ describe("AsciiArtService", () => {
 				userId: "player_state_mgmt_123",
 			});
 			expect(destinationUrl).toContain("userId=player_state_mgmt_123");
+		});
+
+		test("prioritizes redirectUrl from Convex redirectUrls table over manifest / default", async () => {
+			vi.spyOn(convexService, "query").mockImplementation(
+				async (name, args?: Record<string, unknown>) => {
+					if (name === "stepDefinitions:getById") {
+						return {
+							id: "step_07_passcode",
+							title: "Passcode",
+							unlockPayload: { passcode: "WHN" },
+							lockoutPolicy: { maxAttempts: 4 },
+						};
+					}
+					if (name === "redirectUrl:get" && args?.type === "puzzle-asciiart") {
+						return {
+							url: "http://localhost:3000/unlisted_lagoon.html",
+							type: "puzzle-asciiart",
+						};
+					}
+					return null;
+				},
+			);
+
+			const result = await asciiArtService.validatePasscode(
+				"test-user-2",
+				"WHN",
+			);
+			expect(result.success).toBe(true);
+			expect(result.redirectUrl).toBe(
+				"http://localhost:3000/unlisted_lagoon.html?userId=test-user-2",
+			);
+		});
+
+		test("honors serviceMapping when resolving redirectUrl from Convex", async () => {
+			vi.spyOn(convexService, "query").mockImplementation(
+				async (name, args?: Record<string, unknown>) => {
+					if (name === "stepDefinitions:getById") {
+						return {
+							id: "step_07_passcode",
+							title: "Passcode",
+							unlockPayload: { passcode: "WHN" },
+							lockoutPolicy: { maxAttempts: 4 },
+						};
+					}
+					if (
+						name === "serviceMapping:get" &&
+						args?.serviceName === "ascii-art"
+					) {
+						return { redirectUrlType: "custom-haven-redirect" };
+					}
+					if (
+						name === "redirectUrl:get" &&
+						args?.type === "custom-haven-redirect"
+					) {
+						return {
+							url: "https://custom-archive.example.org/haven",
+							type: "custom-haven-redirect",
+						};
+					}
+					return null;
+				},
+			);
+
+			const result = await asciiArtService.validatePasscode(
+				"test-user-2",
+				"WHN",
+			);
+			expect(result.success).toBe(true);
+			expect(result.redirectUrl).toBe(
+				"https://custom-archive.example.org/haven?userId=test-user-2",
+			);
 		});
 
 		test("dynamically accommodates changes in passcode without code modification", async () => {
